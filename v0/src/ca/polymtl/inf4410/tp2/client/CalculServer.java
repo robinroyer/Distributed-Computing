@@ -9,6 +9,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Random;
 
 import ca.polymtl.inf4410.tp2.shared.CalculServerInterface;
 import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
@@ -20,8 +21,17 @@ import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
  */
 public class CalculServer implements CalculServerInterface{
 
-    int capacity;
-    int confidence;
+    
+    
+    /**
+     * Maximum capacity of the instance of CalculServer
+     */
+    private int capacity;
+    
+    /**
+     * Percentage of trusted return message
+     */
+    private int confidence;
     
     
     /**
@@ -31,7 +41,7 @@ public class CalculServer implements CalculServerInterface{
     */
     public static void main(String[] args) {
         //TODO: add args to constructor
-        CalculServer server = new CalculServer();
+        CalculServer server = new CalculServer(args);
         server.run();
     }
     
@@ -59,13 +69,27 @@ public class CalculServer implements CalculServerInterface{
     
     
     /**
-     * Constructor with args
+     * Constructor from Args
+     * 
+     * @param Args Args where we should fin
      */
-    public CalculServer(int port){        
+    
+    public CalculServer(String [] Args){
+        
+    }
+    
+    /**
+     * Constructor with confidence and capacity
+     * @param confidence
+     * @param capacity
+     */
+    private CalculServer( int confidence, int capacity){        
+        this.confidence = confidence;
+        this.capacity = capacity;
     }  
     
     /**
-     * Deafault Constructor
+     * Default Constructor
      */
     public CalculServer(){        
     }    
@@ -74,6 +98,22 @@ public class CalculServer implements CalculServerInterface{
     public int calculate(String[] operations) throws RemoteException, OverloadedServerException {
         // TODO: implement calcul from operations
         return -1;
+    }
+    
+    
+    
+    /**
+     * Test if the server is overloaded, in order to accept or refuse the opertions
+     * 
+     * @param operationNumber  Number of operations sent to the CalculServer
+     * @return True if the operations is not be accepted
+     */
+    private boolean isOverloaded(int operationNumber){                
+        //Algorythm to calculate refusingRate:  T = (U-Q)/(4*Q) * 100                 
+        double refusingRate = (operationNumber - capacity) / (4 * capacity) * 100;        
+        // Using a random generator for refusing
+        Random rand = new Random(System.currentTimeMillis());        
+        return 100 * rand.nextDouble() > refusingRate;  
     }
     
 }
