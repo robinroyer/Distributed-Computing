@@ -79,10 +79,10 @@ public class CalculServer implements CalculServerInterface{
     /**
      * Constructor from Args
      * 
-     * @param Args Args where we should fin
+     * @param args Args where we should fin
      */
     
-    public CalculServer(String [] Args){        
+    public CalculServer(String [] args){        
         this(0, 3);
         //TODO: MODIFY HERE TO GET ARGS        
     }
@@ -95,16 +95,11 @@ public class CalculServer implements CalculServerInterface{
     private CalculServer( int confidence, int capacity){        
         this.confidence = confidence;
         this.capacity = capacity;
-    }  
-    
-    /**
-     * Default Constructor
-     */
-    public CalculServer(){        
-    }    
+    }     
 
     @Override
     public int calculate(String[] operations) throws RemoteException, OverloadedServerException {
+        System.out.println("enter in calculate method");
         
         if (isOverloaded(operations.length)) {
             System.err.println("Refus de calcul: il y a " + operations.length + " operations. Cela depasse la capacite du serveur de calcul.");
