@@ -99,7 +99,6 @@ public class CalculServer implements CalculServerInterface{
 
     @Override
     public int calculate(String[] operations) throws RemoteException, OverloadedServerException {
-        System.out.println("enter in calculate method");
         
         if (isOverloaded(operations.length)) {
             System.err.println("Refus de calcul: il y a " + operations.length + " operations. Cela depasse la capacite du serveur de calcul.");
@@ -111,18 +110,17 @@ public class CalculServer implements CalculServerInterface{
         
         System.out.println("entree de la boucle");
         for (int i = 0; i < operations.length; i++) {
-            System.out.println("boucle : split de " + operations[i]);
-
+            
             // parse arrays of operations
             operation = operations[i].split(" ");
             
             if(null != operation[0]) // call the relevant operation
             switch (operation[0]) {
                 case PELL:
-                    result += proceedPrimeAndModulo(operation[1]);
+                    result += proceedPellAndModulo(operation[1]);
                     break;                
                 case PRIME:
-                    result += proceedPeelAndModulo(operation[1]);
+                    result += proceedPrimeAndModulo(operation[1]);
                     break;
             }
         }
@@ -151,8 +149,8 @@ public class CalculServer implements CalculServerInterface{
      * @param numberAsString Number to proceed as a string
      * @return result of pell modulo 4000
      */
-    private int proceedPrimeAndModulo(String numberAsString){
-        return Operations.pell(Integer.parseInt(numberAsString)) % 4000;
+    private int proceedPrimeAndModulo(String numberAsString){      
+        return Operations.prime(Integer.parseInt(numberAsString));
     }
     
     /**
@@ -161,7 +159,7 @@ public class CalculServer implements CalculServerInterface{
      * @param numberAsString Number to proceed as a string
      * @return result of pell modulo 4000
      */
-    private int proceedPeelAndModulo(String numberAsString){
+    private int proceedPellAndModulo(String numberAsString){
         return Operations.pell(Integer.parseInt(numberAsString)) % 4000;
     }
     
