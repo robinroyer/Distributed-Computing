@@ -7,7 +7,7 @@ package ca.polymtl.inf4410.tp2.shared;
  * @author robinroyer
  *
  */
-public class OverloadedServer extends Exception {
+public class OverloadedServerException extends Exception {
 	
 	/**
 	 * Best practices for each class extenting or implenting Serializable interface.
@@ -18,21 +18,21 @@ public class OverloadedServer extends Exception {
 	/**
 	 * Default constructor
 	 */
-	public OverloadedServer() {
+	public OverloadedServerException() {
 	}
 
 	/**
 	 * Normal constructor
          * @param message The error message
         */
-	public OverloadedServer(String message) {
+	public OverloadedServerException(String message) {
 		super(message);	
 	}	
 
 	/**
 	 * @param cause
 	 */
-	public OverloadedServer(Throwable cause) {
+	public OverloadedServerException(Throwable cause) {
 		super(cause);
 	}
 
@@ -40,7 +40,7 @@ public class OverloadedServer extends Exception {
 	 * @param message
 	 * @param cause
 	 */
-	public OverloadedServer(String message, Throwable cause) {
+	public OverloadedServerException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
@@ -50,7 +50,7 @@ public class OverloadedServer extends Exception {
 	 * @param enableSuppression
 	 * @param writableStackTrace
 	 */
-	public OverloadedServer(String message, Throwable cause,
+	public OverloadedServerException(String message, Throwable cause,
 			boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
