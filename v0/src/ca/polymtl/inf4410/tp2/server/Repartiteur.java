@@ -45,6 +45,8 @@ public class Repartiteur {
 	 * The distant server used for our project
 	 */
 	private CalculServerInterface distantServerStub = null;
+	
+	
 
 	/**
 	 * Public constructor to create a Repartiteur instance.
@@ -116,22 +118,24 @@ public class Repartiteur {
 				split = commande.split(" ");
 				
 				// TODO erase
-				System.out.println("--------------------");
-				System.out.println(split[0]);
-				System.out.println(split[1]);
-				System.out.println("split 1 ok");
-				System.out.println("--------------------");
-				
+//				System.out.println("--------------------");
+//				System.out.println(split[0]);
+//				System.out.println(split[1]);
+//				System.out.println("split 1 ok");
+//				System.out.println("--------------------");
+//				
 				if (split[0].equals("compute")) {
 					// Start to call the calculous servers
 					// TODO
 					try {
 						
 						// TODO erase
-						System.out.println("--------------------");
-						System.out.println(split[1]);
-						System.out.println("--------------------");
+//						System.out.println("--------------------");
+//						System.out.println(split[1]);
+//						System.out.println("--------------------");
+						
 						execute(split[1]);
+						
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
