@@ -141,7 +141,7 @@ public class CalculServer implements CalculServerInterface{
         double refusingRate = (operationNumber - capacity) / (4 * capacity) * 100;        
         // Using a random generator for refusing
         Random rand = new Random(System.currentTimeMillis());        
-        return 100 * rand.nextDouble() > refusingRate;  
+        return refusingRate > 100 * rand.nextDouble();  
     }
     
     private int proceedPrimeAndModulo(String numberAsString){
