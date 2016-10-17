@@ -6,12 +6,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.rmi.AccessException;
-import java.rmi.ConnectException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
 
 import ca.polymtl.inf4410.tp2.shared.CalculServerInterface;
 import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
@@ -115,11 +113,23 @@ public class Repartiteur {
 			while ((commande = reader.readLine()) != null) {
 
 				split = commande.split(" ");
-
+				
+				// TODO erase
+				System.out.println("--------------------");
+				System.out.println(split[0]);
+				System.out.println(split[1]);
+				System.out.println("split 1 ok");
+				System.out.println("--------------------");
+				
 				if (split[0].equals("compute")) {
 					// Start to call the calculous servers
 					// TODO
 					try {
+						
+						// TODO erase
+						System.out.println("--------------------");
+						System.out.println(split[1]);
+						System.out.println("--------------------");
 						execute(split[1]);
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -136,9 +146,13 @@ public class Repartiteur {
 
 	private void execute(String filename) throws IOException {
 
+		// TODO erase
+		System.out.println("Entree de execute");
+		
+		
 		String line = null;
 		int compteur = 0;
-		String message[] = null;
+		String message[] = new String[3];
 
 		FileInputStream fis = new FileInputStream(filename);
 		InputStreamReader isr = new InputStreamReader(fis,
@@ -147,6 +161,9 @@ public class Repartiteur {
 
 		while ((line = br.readLine()) != null) {
 
+			// TODO erase
+			System.out.println("Lecture de : " + line);
+			
 			message[compteur] = line;
 
 			if (compteur == 2) {
