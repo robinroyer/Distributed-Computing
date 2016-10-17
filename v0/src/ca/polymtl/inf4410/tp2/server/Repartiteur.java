@@ -53,7 +53,8 @@ public class Repartiteur {
 	 *            The IP used to connect to the remote server
 	 */
 	public Repartiteur(String distantServerHostname) {
-
+		super();
+		
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
