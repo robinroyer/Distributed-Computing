@@ -192,11 +192,18 @@ public class Repartiteur {
 			}
 
 		}
+		
+		br.close();
 	}
 
 	private void calculate(String message[]) throws RemoteException,
 			OverloadedServerException {
-		distantServerStub.calculate(message);
+		System.out.println("Envoie de :");
+		for(int i = 0; i < message.length; i++) {
+			System.out.println(message[i]);
+		}
+		int result = distantServerStub.calculate(message);
+		System.out.println("Resultat du calcul : " + result);
 	}
 
 }
