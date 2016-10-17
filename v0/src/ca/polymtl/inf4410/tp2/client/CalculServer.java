@@ -22,6 +22,16 @@ import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 public class CalculServer implements CalculServerInterface{
        
     /**
+     * Name of the first operation sent to CalculServer
+     */
+    private final static String PRIME = "prime";  
+    
+    /**
+     * Name of the second operation sent to CalculServer
+     */
+    private final static String PELL = "pell";   
+    
+    /**
      * Maximum capacity of the instance of CalculServer
      */
     private int capacity;
@@ -55,7 +65,7 @@ public class CalculServer implements CalculServerInterface{
                 CalculServerInterface stub = (CalculServerInterface) UnicastRemoteObject.exportObject(this, 0);
                 Registry registry = LocateRegistry.getRegistry();
                 registry.rebind("server", stub);
-                System.out.println("Server ready.");
+                System.out.println("CalculServer ready.");
         } catch (ConnectException e) {
                 System.err.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lance ?");
                 System.err.println();
@@ -73,7 +83,7 @@ public class CalculServer implements CalculServerInterface{
      */
     
     public CalculServer(String [] Args){        
-        this(3, 0);
+        this(0, 3);
         //TODO: MODIFY HERE TO GET ARGS        
     }
     
@@ -101,8 +111,21 @@ public class CalculServer implements CalculServerInterface{
             throw new OverloadedServerException();
         }
         
-        // TODO: implement calcul from operations
-        return -1;
+        int result = 0;
+        String[] operation;
+        
+        for (int i = 0; i < operations.length; i++) {
+            // parse arrays of operations
+            operation = operations[i].split(" ");
+            
+            // call the relevant operation
+            if(PELL.equals(operation[0])) {
+                result += proceedPrimeAndModulo(operation[1]);                
+            }else if(PRIME.equals(operation[0])){
+                result += proceedPeelAndModulo(operation[1]);                
+            }
+        }   
+        return result;
     }
     
     
@@ -119,6 +142,20 @@ public class CalculServer implements CalculServerInterface{
         // Using a random generator for refusing
         Random rand = new Random(System.currentTimeMillis());        
         return 100 * rand.nextDouble() > refusingRate;  
+    }
+    
+    private int proceedPrimeAndModulo(String numberAsString){
+        return Operations.pell(Integer.parseInt(numberAsString)) % 4000;
+    }
+    
+    /**
+     * Call Operations.pell with the param as a string
+     * 
+     * @param numberAsString
+     * @return 
+     */
+    private int proceedPeelAndModulo(String numberAsString){
+        return Operations.pell(Integer.parseInt(numberAsString)) % 4000;
     }
     
 }
