@@ -20,9 +20,7 @@ import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
  * @author robinroyer
  */
 public class CalculServer implements CalculServerInterface{
-
-    
-    
+       
     /**
      * Maximum capacity of the instance of CalculServer
      */
@@ -74,8 +72,9 @@ public class CalculServer implements CalculServerInterface{
      * @param Args Args where we should fin
      */
     
-    public CalculServer(String [] Args){
-        
+    public CalculServer(String [] Args){        
+        this(3, 0);
+        //TODO: MODIFY HERE TO GET ARGS        
     }
     
     /**
@@ -96,6 +95,12 @@ public class CalculServer implements CalculServerInterface{
 
     @Override
     public int calculate(String[] operations) throws RemoteException, OverloadedServerException {
+        
+        // Check for overload
+        if (isOverloaded(operations.length)) {
+            throw new OverloadedServerException();
+        }
+        
         // TODO: implement calcul from operations
         return -1;
     }
