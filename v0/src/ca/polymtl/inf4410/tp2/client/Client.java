@@ -52,11 +52,6 @@ public class Client {
 	private static final int ID_PUSH_CANCEL = -10;
 
 	/**
-	 * Error id in case of problem during the lock process.
-	 */
-	private static final int ID_LOCK_CANCEL = -40;
-
-	/**
 	 * Error id code in case of problem during the create process.
 	 */
 	private static final int ID_CREATE_CANCEL = -30;
