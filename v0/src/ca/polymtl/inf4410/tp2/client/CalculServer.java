@@ -4,14 +4,14 @@
  * and open the template in the editor.
  */
 package ca.polymtl.inf4410.tp2.client;
-import ca.polymtl.inf4410.tp2.shared.CalculServerInterface;
-import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
-import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+
+import ca.polymtl.inf4410.tp2.shared.CalculServerInterface;
+import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 
 /**
  * CalculServer implement the server that will procceed calculation
@@ -44,7 +44,7 @@ public class CalculServer implements CalculServerInterface{
         }
 
         try {
-                ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(this, 0);
+                CalculServerInterface stub = (CalculServerInterface) UnicastRemoteObject.exportObject(this, 0);
                 Registry registry = LocateRegistry.getRegistry();
                 registry.rebind("server", stub);
                 System.out.println("Server ready.");

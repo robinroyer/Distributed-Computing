@@ -1,3 +1,5 @@
+package ca.polymtl.inf4410.tp2.client;
+
 /**
  * Methodes utilitaires pour effectuer les operations du TP2.
  * 
