@@ -106,8 +106,8 @@ public class CalculServer implements CalculServerInterface{
     @Override
     public int calculate(String[] operations) throws RemoteException, OverloadedServerException {
         
-        // Check for overload
         if (isOverloaded(operations.length)) {
+            System.err.println("Refus de calcul: il y a " + operations.length + " operations. Cela depasse la capacite du serveur de calcul.");
             throw new OverloadedServerException();
         }
         
@@ -115,16 +115,21 @@ public class CalculServer implements CalculServerInterface{
         String[] operation;
         
         for (int i = 0; i < operations.length; i++) {
+            
             // parse arrays of operations
             operation = operations[i].split(" ");
             
-            // call the relevant operation
-            if(PELL.equals(operation[0])) {
-                result += proceedPrimeAndModulo(operation[1]);                
-            }else if(PRIME.equals(operation[0])){
-                result += proceedPeelAndModulo(operation[1]);                
+            if(null != operation[0]) // call the relevant operation
+            switch (operation[0]) {
+                case PELL:
+                    result += proceedPrimeAndModulo(operation[1]);
+                    break;                
+                case PRIME:
+                    result += proceedPeelAndModulo(operation[1]);
+                    break;
             }
-        }   
+        }
+        System.out.println("Le resultat de ces " + operations.length + " operations est : " +result);
         return result;
     }
     
@@ -144,6 +149,12 @@ public class CalculServer implements CalculServerInterface{
         return refusingRate > 100 * rand.nextDouble();  
     }
     
+    /**
+     * Call Operations.prime with the param as a string
+     * 
+     * @param numberAsString Number to proceed as a string
+     * @return result of pell modulo 4000
+     */
     private int proceedPrimeAndModulo(String numberAsString){
         return Operations.pell(Integer.parseInt(numberAsString)) % 4000;
     }
@@ -151,8 +162,8 @@ public class CalculServer implements CalculServerInterface{
     /**
      * Call Operations.pell with the param as a string
      * 
-     * @param numberAsString
-     * @return 
+     * @param numberAsString Number to proceed as a string
+     * @return result of pell modulo 4000
      */
     private int proceedPeelAndModulo(String numberAsString){
         return Operations.pell(Integer.parseInt(numberAsString)) % 4000;
