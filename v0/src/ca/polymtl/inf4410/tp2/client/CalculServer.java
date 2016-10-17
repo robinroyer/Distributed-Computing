@@ -109,8 +109,10 @@ public class CalculServer implements CalculServerInterface{
         int result = 0;
         String[] operation;
         
+        System.out.println("entree de la boucle");
         for (int i = 0; i < operations.length; i++) {
-            
+            System.out.println("boucle : split de " + operations[i]);
+
             // parse arrays of operations
             operation = operations[i].split(" ");
             
@@ -127,8 +129,7 @@ public class CalculServer implements CalculServerInterface{
         System.out.println("Le resultat de ces " + operations.length + " operations est : " +result);
         return result;
     }
-    
-    
+        
     
     /**
      * Test if the server is overloaded, in order to accept or refuse the opertions
