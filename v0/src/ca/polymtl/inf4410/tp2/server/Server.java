@@ -1,4 +1,4 @@
-package ca.polymtl.inf4410.tp1.server;
+package ca.polymtl.inf4410.tp2.server;
 
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NoSuchFileException;
@@ -10,11 +10,9 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import ca.polymtl.inf4410.tp1.shared.File;
-import ca.polymtl.inf4410.tp1.shared.Header;
-import ca.polymtl.inf4410.tp1.shared.ServerInterface;
-import ca.polymtl.inf4410.tp1.shared.UnlockableFileException;
-import ca.polymtl.inf4410.tp1.shared.UnpushableFileException;
+import ca.polymtl.inf4410.tp2.shared.File;
+import ca.polymtl.inf4410.tp2.shared.Header;
+import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 
 /**
  * Server class. Represent the remove server in our project.
@@ -163,7 +161,7 @@ public class Server implements ServerInterface {
 
 	@Override
 	public File lock(String name, Integer clientId, byte[] checksum)
-			throws RemoteException, UnlockableFileException, NoSuchFileException {
+			throws RemoteException, NoSuchFileException {
 		System.out.println("Essai de veouillage du fichier " + name + " par le client : " + clientId);
 		// Check if the file exists
 		File file = getFile(name);
@@ -176,11 +174,6 @@ public class Server implements ServerInterface {
 		if (filesLockers.containsKey(name)) {
 			Integer locker = filesLockers.get(name);
 			System.out.println("Fichier deja verouille par le client : " + locker);
-			if (clientId.equals(locker)) {
-				throw new UnlockableFileException("Vous avez deja verouille le fichier", name);
-			} else {
-				throw new UnlockableFileException("Verouillage du fichier impossible.", name);
-			}
 		}
 
 		// Lock the file
@@ -206,7 +199,7 @@ public class Server implements ServerInterface {
 
 	@Override
 	public boolean push(String name, byte[] content, Integer clientId)
-			throws RemoteException, NoSuchFileException, UnpushableFileException {
+			throws RemoteException, NoSuchFileException {
 		System.out.println("Essaie de push du fichier \"" + name + "\" par le client " + clientId + " ...");
 		File file = getFile(name);
 
@@ -220,13 +213,10 @@ public class Server implements ServerInterface {
 		Integer locker = filesLockers.get(name);
 		if (locker == null) {
 			System.out.println("Fichier \"" + name + "\" non verouille.");
-			throw new UnpushableFileException("Le fichier n'est pas lock", name);
 		}
 
 		if (!locker.equals(clientId)) {
 			System.out.println("Fichier deja verouille par le client : " + locker);
-			throw new UnpushableFileException(
-					"Vous n'avez pas le lock sur le fichier, le lock est possede par le client : " + clientId, name);
 		}
 
 		// Change the content of the file and update the header

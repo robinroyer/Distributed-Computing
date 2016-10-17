@@ -1,4 +1,4 @@
-package ca.polymtl.inf4410.tp1.shared;
+package ca.polymtl.inf4410.tp2.shared;
 
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NoSuchFileException;
@@ -75,7 +75,7 @@ public interface ServerInterface extends Remote {
 	 * @throws RemoteException
 	 */
 	File lock(String name, Integer clientId, byte[] checksum)
-			throws RemoteException, UnlockableFileException, NoSuchFileException;
+			throws RemoteException, NoSuchFileException;
 
 	/**
 	 * Command to push a local file to the remote server
@@ -92,5 +92,5 @@ public interface ServerInterface extends Remote {
 	 *             if the file is already locked by another client.
 	 */
 	boolean push(String name, byte[] content, Integer clientId)
-			throws RemoteException, NoSuchFileException, UnpushableFileException;
+			throws RemoteException, NoSuchFileException;
 }

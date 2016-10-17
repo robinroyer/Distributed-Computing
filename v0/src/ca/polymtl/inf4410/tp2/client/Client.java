@@ -1,4 +1,4 @@
-package ca.polymtl.inf4410.tp1.client;
+package ca.polymtl.inf4410.tp2.client;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -19,11 +19,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
-import ca.polymtl.inf4410.tp1.shared.File;
-import ca.polymtl.inf4410.tp1.shared.Header;
-import ca.polymtl.inf4410.tp1.shared.ServerInterface;
-import ca.polymtl.inf4410.tp1.shared.UnpushableFileException;
-import ca.polymtl.inf4410.tp1.shared.UnlockableFileException;
+import ca.polymtl.inf4410.tp2.shared.File;
+import ca.polymtl.inf4410.tp2.shared.Header;
+import ca.polymtl.inf4410.tp2.shared.ServerInterface;
 
 /**
  * Client class of the project. Use to run the client side.
@@ -266,9 +264,6 @@ public class Client {
 		} catch (RemoteException e) {
 			System.err.println("Erreur RMI :" + e.getMessage());
 			System.exit(ID_RMI_ERROR);
-		} catch (UnpushableFileException ex) {
-			System.err.println(ex.getMessage());
-			System.exit(ID_PUSH_CANCEL);
 		} catch (NoSuchFileException er) {
 			System.err.println("Erreur NoSuchFileException :" + er.getMessage());
 			System.exit(ID_PUSH_CANCEL);
@@ -316,9 +311,6 @@ public class Client {
 		} catch (RemoteException e) {
 			System.err.println("Erreur RMI : " + e.getMessage());
 			System.exit(ID_RMI_ERROR);
-		} catch (UnlockableFileException e) {
-			System.err.println(e.getMessage());
-			System.exit(ID_LOCK_CANCEL);
 		} catch (IOException e) {
 			System.err.println("Erreur IO : " + e.getMessage());
 			System.exit(ID_IO_ERROR);

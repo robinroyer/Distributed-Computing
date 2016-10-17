@@ -1,4 +1,4 @@
-package ca.polymtl.inf4410.tp1.shared;
+package ca.polymtl.inf4410.tp2.shared;
 
 import java.security.MessageDigest;
 import java.io.Serializable;
