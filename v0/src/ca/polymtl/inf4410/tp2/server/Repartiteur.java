@@ -46,8 +46,6 @@ public class Repartiteur {
 	 */
 	private CalculServerInterface distantServerStub = null;
 	
-	
-
 	/**
 	 * Public constructor to create a Repartiteur instance.
 	 * 
@@ -114,28 +112,13 @@ public class Repartiteur {
 
 		try {
 			while ((commande = reader.readLine()) != null) {
-
 				split = commande.split(" ");
-				
-				// TODO erase
-//				System.out.println("--------------------");
-//				System.out.println(split[0]);
-//				System.out.println(split[1]);
-//				System.out.println("split 1 ok");
-//				System.out.println("--------------------");
-//				
+							
 				if (split[0].equals("compute")) {
 					// Start to call the calculous servers
 					// TODO
 					try {
-						
-						// TODO erase
-//						System.out.println("--------------------");
-//						System.out.println(split[1]);
-//						System.out.println("--------------------");
-						
-						execute(split[1]);
-						
+						execute(split[1]);				
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -150,10 +133,6 @@ public class Repartiteur {
 	}
 
 	private void execute(String filename) throws IOException {
-
-		// TODO erase
-		System.out.println("Entree de execute");
-		
 		
 		String line = null;
 		int compteur = 0;
@@ -203,11 +182,16 @@ public class Repartiteur {
 
 	private void calculate(String message[]) throws RemoteException,
 			OverloadedServerException {
+		
 		System.out.println("Envoie de :");
 		for(int i = 0; i < message.length; i++) {
 			System.out.println(message[i]);
 		}
+		
 		int result = distantServerStub.calculate(message);
+		
+		
+		
 		System.out.println("Resultat du calcul : " + result);
 	}
 
