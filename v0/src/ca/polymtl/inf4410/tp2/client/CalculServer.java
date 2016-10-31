@@ -50,13 +50,13 @@ public class CalculServer implements CalculServerInterface {
 	public static void main(String[] args) {
 		// TODO: add args to constructor
 		CalculServer server = new CalculServer(args);
-		server.run();
+		server.run(Integer.parseInt(args[0]));
 	}
 
 	/**
 	 * Main method to run the server.
 	 */
-	private void run() {
+	private void run(int port) {
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
@@ -64,7 +64,7 @@ public class CalculServer implements CalculServerInterface {
 		try {
 			CalculServerInterface stub = (CalculServerInterface) UnicastRemoteObject.exportObject(this, 0);
 			Registry registry = LocateRegistry.getRegistry();
-			registry.rebind("server", stub);
+			registry.rebind("server" + port, stub);
 			System.out.println("CalculServer ready.");
 		} catch (ConnectException e) {
 			System.err.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lance ?");
@@ -110,7 +110,6 @@ public class CalculServer implements CalculServerInterface {
 		int result = 0;
 		String[] operation;
 
-		System.out.println("entree de la boucle");
 		for (int i = 0; i < operations.length; i++) {
 
 			// parse arrays of operations
@@ -126,6 +125,7 @@ public class CalculServer implements CalculServerInterface {
 					break;
 				}
 		}
+		result = result % 4000;
 		System.out.println("Le resultat de ces " + operations.length + " operations est : " + result);
 		return result;
 	}
@@ -154,7 +154,7 @@ public class CalculServer implements CalculServerInterface {
 	 * @return result of pell modulo 4000
 	 */
 	private int proceedPrimeAndModulo(String numberAsString) {
-		return Operations.prime(Integer.parseInt(numberAsString));
+		return Operations.prime(Integer.parseInt(numberAsString)) % 4000;
 	}
 
 	/**
