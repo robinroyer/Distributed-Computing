@@ -11,12 +11,15 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
 import ca.polymtl.inf4410.tp2.shared.CalculServerInterface;
 import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 
-public class Repartiteur {
+public class Repartiteur implements Runnable {
 
 	/**
 	 * IP of the remove server
@@ -44,6 +47,18 @@ public class Repartiteur {
 	private static final int ERROR_ACCESS = -40;
 
 	/**
+	 * Boolean to know if the repartitor is in safe mode or not
+	 */
+	private boolean safeMode;
+
+	/**
+	 * ArrayList to store the calculations to do
+	 */
+	private static LinkedList<String> calculations;
+
+	private static ArrayList<String> toVerifyCalculation;
+
+	/**
 	 * The distant servers used for our project
 	 */
 	private CalculServerInterface distantServerStub = null;
@@ -62,6 +77,8 @@ public class Repartiteur {
 	public Repartiteur(String distantServerHostname) {
 		super();
 
+		calculations = new LinkedList<String>();
+
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
@@ -75,10 +92,19 @@ public class Repartiteur {
 
 	public static void main(String[] args) {
 
+		// Creation of the repartitor instance
 		Repartiteur repartiteur = new Repartiteur(REMOTE_SERVER_IP);
 
 		System.out.println("Lancement du repartiteur ...");
-		repartiteur.run();
+
+		// Check is safemode is enable or not
+		if (args[1] == "-S") {
+			repartiteur.setSafeMode(true);
+			System.out.println("Safe mode détecté.");
+		}
+
+		// Start repartitor's job
+		repartiteur.runRepartitor();
 
 	}
 
@@ -100,8 +126,7 @@ public class Repartiteur {
 				e.printStackTrace();
 			}
 		} catch (NotBoundException e) {
-			System.err.println("Erreur: Le nom  " + e.getMessage()
-					+ "  n est pas defini dans le registre.");
+			System.err.println("Erreur: Le nom  " + e.getMessage() + "  n est pas defini dans le registre.");
 			System.exit(ERROR_NOT_BOUND);
 		} catch (AccessException e) {
 			System.err.println("Erreur: " + e.getMessage());
@@ -114,33 +139,35 @@ public class Repartiteur {
 		return stub;
 	}
 
-	private void run() {
+	private void runRepartitor() {
 
 		System.out.println("Attente des commandes ...");
 
 		String commande = null;
 		String split[] = null;
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				System.in));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 		try {
 			while ((commande = reader.readLine()) != null) {
 				split = commande.split(" ");
+				String command = split[0];
+				String arg1 = split[1];
 
-				if (split[0].equals("compute")) {
+				if (command.equals("loadFile")) {
 					// Start to call the calculous servers
 					// TODO
 					try {
-						execute(split[1]);
+						storeCalculations(split[1]);
 					} catch (IOException e) {
-						e.printStackTrace();
+						System.err.println("Probleme d'acces au fichier : \"" + arg1 + "\".");
 					}
+				} else if (command.equals("compute")) { // TODO : Do the job
+					execute(split[1]);
 				}
 			}
 		} catch (IOException e) {
-			System.err
-					.println("Erreur dans la lecture du flux d'entree sortie.");
+			System.err.println("Erreur dans la lecture du flux d'entree sortie.");
 			e.printStackTrace();
 			System.exit(ERROR_IO);
 		}
@@ -148,14 +175,15 @@ public class Repartiteur {
 
 	private void execute(String filename) throws IOException {
 
+		Semaphore semaphore = new Semaphore(1);
+
 		String line = null;
 		int compteur = 0;
 		String message[] = new String[3];
 		int result = 0;
 
 		FileInputStream fis = new FileInputStream(filename);
-		InputStreamReader isr = new InputStreamReader(fis,
-				Charset.forName("UTF-8"));
+		InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
 		BufferedReader br = new BufferedReader(isr);
 
 		while ((line = br.readLine()) != null) {
@@ -175,8 +203,7 @@ public class Repartiteur {
 				} catch (OverloadedServerException e) {
 					// Erreur surcharge serveur
 					System.out.println("Server surcharge !");
-					System.out
-							.println("Renvoie du message vers un autre client !");
+					System.out.println("Renvoie du message vers un autre client !");
 					// TODO : implem
 				}
 
@@ -219,8 +246,26 @@ public class Repartiteur {
 		br.close();
 	}
 
-	private int calculate(String message[]) throws RemoteException,
-			OverloadedServerException {
+	/**
+	 * Private method to store the initial calculations to do
+	 * 
+	 * @param filename
+	 * @throws IOException
+	 */
+	private void storeCalculations(String filename) throws IOException {
+		// Some declarations ...
+		String line = null;
+		FileInputStream fis = new FileInputStream(filename);
+		InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+		BufferedReader br = new BufferedReader(isr);
+
+		// Add each line of the file to the datastructure
+		while ((line = br.readLine()) != null) {
+			calculations.add(line);
+		}
+	}
+
+	private int calculate(String message[]) throws RemoteException, OverloadedServerException {
 		int result1 = distantServerStub.calculate(message);
 		System.out.println("Serveur 1 => " + result1);
 		int result2 = distantServerStub2.calculate(message);
@@ -233,7 +278,54 @@ public class Repartiteur {
 			// TODO generate exception
 			return 0;
 		}
+	}
 
+	private void getSomeCalculous(Semaphore semaphore) {
+
+		// Protect the datastructure by using semaphore
+		try {
+			semaphore.acquire(1);
+		} catch (InterruptedException e) {
+			System.err.println("Probleme de semaphore.");
+		}
+
+		String[] calculous = new String[3];
+		int compteur = 0;
+		
+		// Store the calculous information into another structure
+		Iterator<String> i = calculations.iterator();
+		while (i.hasNext()) {
+			calculous[compteur] = i.next();
+			i.remove();
+			if (compteur != 3) {
+				compteur++;
+			} else {
+				break;
+			}
+		}
+		
+		// Create the information relative the the calculous
+		CalculServerInfos css = new CalculServerInfos(calculous);
+		
+		// Release the token from the semaphore
+		semaphore.release(1);
+		
+		// TODO : see how can we send threads' job
+	}
+
+	@Override
+	public void run() {
+		// TODO : implements thread logic
+	}
+
+	/**
+	 * SafeMode setter
+	 * 
+	 * @param true
+	 *            if the mode is enable, false otherwise
+	 */
+	public void setSafeMode(boolean b) {
+		this.safeMode = b;
 	}
 
 }

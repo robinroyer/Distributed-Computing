@@ -1,10 +1,20 @@
 package ca.polymtl.inf4410.tp2.server;
 
-public class CalculServerStatistics {
+public class CalculServerInfos {
 
-	int lastNumberOfOperationsSent;
-	int lastOperationResult;
-	boolean lastOperationOverloaded;
+	int capacity;
+	int result;
+	boolean isOptimized;
+	String[] calculous;
+	
+	/**
+	 * Default constructor
+	 */
+	public CalculServerInfos() {}
+	
+	public CalculServerInfos(String[] calculous) {
+		this.calculous = calculous;
+	}
 	
 	// 0 - Repartiteur deux modes : un safe (no verif) et un non safe (activation verif)
 	// 1 - Une liste de calcul unitaire avec tous les calculs du fichier
@@ -24,9 +34,4 @@ public class CalculServerStatistics {
 	// et mise a jour du resultat final. Sinon, on re pousse les calculs dans la liste des taches unitaires
 	// 8 - Si le compteur de calcul est egal au nombre de calculs de la liste initial alors on peut terminer
 	// l'execution du thread, sinon, on sleep avant de relancer le check dans les deux listes.
-
-	public CalculServerStatistics() {
-		// TODO Auto-generated constructor stub
-	}
-
 }
