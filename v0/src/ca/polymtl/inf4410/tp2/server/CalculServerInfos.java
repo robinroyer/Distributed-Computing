@@ -14,6 +14,65 @@ public class CalculServerInfos {
 	
 	public CalculServerInfos(String[] calculous) {
 		this.calculous = calculous;
+		this.isOptimized = false;
+		this.result = -1;
+		this.capacity = -1;
+	}
+
+	/**
+	 * @return the capacity
+	 */
+	public int getCapacity() {
+		return capacity;
+	}
+
+	/**
+	 * @param capacity the capacity to set
+	 */
+	public void setCapacity(int capacity) {
+		this.capacity = capacity;
+	}
+
+	/**
+	 * @return the result
+	 */
+	public int getResult() {
+		return result;
+	}
+
+	/**
+	 * @param result the result to set
+	 */
+	public void setResult(int result) {
+		this.result = result;
+	}
+
+	/**
+	 * @return the isOptimized
+	 */
+	public boolean isOptimized() {
+		return isOptimized;
+	}
+
+	/**
+	 * @param isOptimized the isOptimized to set
+	 */
+	public void setOptimized(boolean isOptimized) {
+		this.isOptimized = isOptimized;
+	}
+
+	/**
+	 * @return the calculous
+	 */
+	public String[] getCalculous() {
+		return calculous;
+	}
+
+	/**
+	 * @param calculous the calculous to set
+	 */
+	public void setCalculous(String[] calculous) {
+		this.calculous = calculous;
 	}
 	
 	// 0 - Repartiteur deux modes : un safe (no verif) et un non safe (activation verif)
