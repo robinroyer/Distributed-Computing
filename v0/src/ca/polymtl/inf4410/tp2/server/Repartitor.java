@@ -60,7 +60,7 @@ public class Repartitor {
 	 * ArrayList to store the calculations to do
 	 */
 	private ArrayList<String> calculations;
-	
+
 	private int globalResult;
 
 	/**
@@ -93,9 +93,7 @@ public class Repartitor {
 	/**
 	 * The distant servers used for our project
 	 */
-	private CalculousServerInterface distantServerStub = null;
-
-	private int port = 5010;
+//	private CalculousServerInterface distantServerStub = null;
 
 	/**
 	 * Public constructor to create a Repartiteur instance.
@@ -113,18 +111,15 @@ public class Repartitor {
 
 		serverInformations = new HashMap<>();
 		CalculousServeurs = new ArrayList<>();
-		
+
 		globalResult = 0;
 
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
 
+		System.out.println("Chargement des serveurs ...");
 		loadServer();
-		if (distantServerHostname != null) {
-			distantServerStub = loadServerStub(distantServerHostname, port);
-		}
-
 	}
 
 	/**
@@ -160,9 +155,6 @@ public class Repartitor {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				System.in));
 
-		System.out.println("Chargement des serveurs ...");
-		loadServer();
-
 		System.out.println("Attente des commandes ...");
 		try {
 			while ((commande = reader.readLine()) != null) {
@@ -181,7 +173,8 @@ public class Repartitor {
 					// Do the job
 					execute();
 					// Show result
-					System.out.println("Resultats des calculs => " + globalResult);
+					System.out.println("Resultats des calculs => "
+							+ globalResult);
 				}
 			}
 		} catch (IOException e) {
@@ -226,8 +219,8 @@ public class Repartitor {
 		CalculousServerInterface stub = null;
 
 		try {
-			Registry registry = LocateRegistry.getRegistry(hostname);
-			stub = (CalculousServerInterface) registry.lookup("server" + port);
+			Registry registry = LocateRegistry.getRegistry(hostname, port);
+			stub = (CalculousServerInterface) registry.lookup(hostname);
 			try {
 				System.out.println(InetAddress.getLocalHost().getHostName());
 			} catch (Exception e) {
@@ -250,8 +243,10 @@ public class Repartitor {
 
 	private void execute() throws IOException {
 		// TODO : change to manage all servers
-		RepartitorThread thread = new RepartitorThread(this, distantServerStub);
-		thread.start();
+		for (CalculousServerInterface server : CalculousServeurs) {
+			RepartitorThread thread = new RepartitorThread(this, server);
+			thread.start();
+		}
 	}
 
 	/**
@@ -332,7 +327,7 @@ public class Repartitor {
 			System.err.println("Probleme de semaphore.");
 		}
 
-		String[] calculous = null;
+		String[] calculous = new String[3];
 		int compteur = 0;
 
 		// Store the calculous information into an array
@@ -392,17 +387,18 @@ public class Repartitor {
 		CalculousServerInformation csi = serverInformations.get(serverStub);
 		csi.setCapacity(csi.getCapacity() + value);
 	}
-	
-	public void updateOverloadedSituation(CalculousServerInterface serverStub, boolean b) {
+
+	public void updateOverloadedSituation(CalculousServerInterface serverStub,
+			boolean b) {
 		// recuperation de l'instance information relative au bon stub
 		CalculousServerInformation csi = serverInformations.get(serverStub);
 		csi.setPreviousCalculHasBeenOverloaded(b);
 	}
-	
+
 	public void removeTaskToVerify(Task task) {
 		toVerifyCalculations.remove(task);
 	}
-	
+
 	public void storeResult(int result) {
 		this.globalResult += result % 4000;
 	}

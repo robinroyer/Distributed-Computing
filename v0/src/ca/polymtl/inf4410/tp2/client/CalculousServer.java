@@ -41,6 +41,9 @@ public class CalculousServer implements CalculousServerInterface {
 	 * Percentage of trusted return message
 	 */
 	private int confidence;
+	
+	private String ip;
+	private int port;
 
 	/**
 	 * Main to run the server.
@@ -63,8 +66,8 @@ public class CalculousServer implements CalculousServerInterface {
 
 		try {
 			CalculousServerInterface stub = (CalculousServerInterface) UnicastRemoteObject.exportObject(this, 0);
-			Registry registry = LocateRegistry.getRegistry();
-			registry.rebind("server" + port, stub);
+			Registry registry = LocateRegistry.getRegistry(this.getPort());
+			registry.rebind(this.getIp(), stub);
 			System.out.println("CalculServer ready.");
 		} catch (ConnectException e) {
 			System.err.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lance ?");
@@ -166,6 +169,34 @@ public class CalculousServer implements CalculousServerInterface {
 	 */
 	private int proceedPellAndModulo(String numberAsString) {
 		return Operations.pell(Integer.parseInt(numberAsString)) % 4000;
+	}
+	
+	/**
+	 * @return the ip
+	 */
+	public String getIp() {
+		return ip;
+	}
+
+	/**
+	 * @param ip the ip to set
+	 */
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+
+	/**
+	 * @param port the port to set
+	 */
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 }
