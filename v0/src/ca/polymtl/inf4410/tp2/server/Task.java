@@ -8,9 +8,12 @@ public class Task {
 	
 	private CalculousServerInterface author;
 	
+	private int resulttoVerify;
+	
 	public Task(CalculousServerInterface server, String[] calculous) {
 		this.calculous = calculous;
 		this.author = server;
+		this.resulttoVerify = -1;
 	}
 	
 	public String[] getCalculous() {
@@ -19,6 +22,34 @@ public class Task {
 	
 	public CalculousServerInterface getAuthor() {
 		return author;
+	}
+
+	/**
+	 * @return the resulttoVerify
+	 */
+	public int getResulttoVerify() {
+		return resulttoVerify;
+	}
+
+	/**
+	 * @param resulttoVerify the resulttoVerify to set
+	 */
+	public void setResulttoVerify(int resulttoVerify) {
+		this.resulttoVerify = resulttoVerify;
+	}
+
+	/**
+	 * @param calculous the calculous to set
+	 */
+	public void setCalculous(String[] calculous) {
+		this.calculous = calculous;
+	}
+
+	/**
+	 * @param author the author to set
+	 */
+	public void setAuthor(CalculousServerInterface author) {
+		this.author = author;
 	}
 
 }

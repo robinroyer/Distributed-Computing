@@ -21,46 +21,47 @@ public class RepartitorThread extends Thread {
 	@Override
 	public void run() {
 		// TODO : implements thread logic
-		int result = -1;
-		boolean verify = false;
-
-		// On recupere la liste des calculs a faire
-		try {
-			System.out.println("Verification des calculs a faire ...");
-			calculous = repartitor.getSomeCalculousToVerify(serverStub);
-			verify = true;
-		} catch (NoMoreWorkToVerifyException e1) {
-			System.out.println("Pas de calculs a verifier pour moi ...");
-			
-			System.out.println("Verification des calculs a faire ...");
+		Task taskToVerify = null;
+		
+		if (repartitor.getSafeMore()) {
+			// On recupere la liste des calculs a verifier
 			try {
-				calculous = repartitor.getSomeCalculous();
-			} catch (NoMoreWorkException e) {
-				System.out.println("Plus de calculs a faire ...");
+				System.out.println("Verification des calculs a faire ...");
+				taskToVerify = repartitor.getTasksToVerify(serverStub);
+			} catch (NoMoreWorkToVerifyException nmwtve) {
+				System.out.println("Pas de calculs a verifier pour moi ...");
+
 			}
+
+			// On procede a la verification
+			proceedToVerification(taskToVerify);
 		}
 
-		doTheJob(verify);
-	}
-	
-	private void doTheJob(Boolean verification) {
-		if(verification) {
-			doVerification();
-		} else {
+		// Si on a pas de verification a faire, on procede aux calculs classiques
+		System.out.println("Verification des calculs a faire ...");
+		try {
+			calculous = repartitor.getSomeCalculous();
 			proceedToCalculous();
+		} catch (NoMoreWorkException nmwe) {
+			System.out.println("Plus de calculs a faire ...");
 		}
 	}
-	
-	private void doVerification() {
+
+	private void proceedToVerification(Task task) {
 		int result = -1;
 		try {
-			result = calculate(serverStub, calculous);
-		}  catch (RemoteException e) {
+			result = calculate(serverStub, task.getCalculous());
+		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (OverloadedServerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		
+		if(result == task.getResulttoVerify()) {
+			repartitor.removeTaskToVerify(task);
+			repartitor.storeResult(result);
 		}
 	}
 
@@ -74,13 +75,21 @@ public class RepartitorThread extends Thread {
 		} catch (OverloadedServerException e) {
 			// If the server is overloaded, send back the calculous
 			repartitor.addCalculous(calculous);
+			repartitor.updateCapacity(serverStub, -1);
+			repartitor.updateOverloadedSituation(serverStub, true);
+
 			e.printStackTrace();
 		}
 
-		repartitor.addCalculousToVerify(serverStub, calculous);
+		if(repartitor.getSafeMore()) {
+			repartitor.addCalculousToVerify(serverStub, calculous, result);
+		} else {
+			repartitor.storeResult(result);
+		}
 	}
-	
-	public int calculate(CalculousServerInterface server, String operations[]) throws RemoteException, OverloadedServerException {
+
+	public int calculate(CalculousServerInterface server, String operations[])
+			throws RemoteException, OverloadedServerException {
 		return server.calculate(operations);
 	}
 
