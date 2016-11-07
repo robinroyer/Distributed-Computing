@@ -12,7 +12,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Random;
 
-import ca.polymtl.inf4410.tp2.shared.CalculServerInterface;
+import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
 import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 
 /**
@@ -20,7 +20,7 @@ import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
  * 
  * @author robinroyer
  */
-public class CalculServer implements CalculServerInterface {
+public class CalculousServer implements CalculousServerInterface {
 
 	/**
 	 * Name of the first operation sent to CalculServer
@@ -49,7 +49,7 @@ public class CalculServer implements CalculServerInterface {
 	 */
 	public static void main(String[] args) {
 		// TODO: add args to constructor
-		CalculServer server = new CalculServer(args);
+		CalculousServer server = new CalculousServer(args);
 		server.run(Integer.parseInt(args[0]));
 	}
 
@@ -62,7 +62,7 @@ public class CalculServer implements CalculServerInterface {
 		}
 
 		try {
-			CalculServerInterface stub = (CalculServerInterface) UnicastRemoteObject.exportObject(this, 0);
+			CalculousServerInterface stub = (CalculousServerInterface) UnicastRemoteObject.exportObject(this, 0);
 			Registry registry = LocateRegistry.getRegistry();
 			registry.rebind("server" + port, stub);
 			System.out.println("CalculServer ready.");
@@ -82,7 +82,7 @@ public class CalculServer implements CalculServerInterface {
 	 *            Args where we should fin
 	 */
 
-	public CalculServer(String[] args) {
+	public CalculousServer(String[] args) {
 		this(0, 3);
 		// TODO: MODIFY HERE TO GET ARGS
 	}
@@ -93,7 +93,7 @@ public class CalculServer implements CalculServerInterface {
 	 * @param confidence
 	 * @param capacity
 	 */
-	private CalculServer(int confidence, int capacity) {
+	private CalculousServer(int confidence, int capacity) {
 		this.confidence = confidence;
 		this.capacity = capacity;
 	}

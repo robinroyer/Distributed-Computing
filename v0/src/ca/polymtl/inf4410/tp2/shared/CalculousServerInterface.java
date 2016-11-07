@@ -10,7 +10,7 @@ import java.rmi.RemoteException;
  * @author robinroyer
  * 
  */
-public interface CalculServerInterface extends Remote {
+public interface CalculousServerInterface extends Remote {
 	/**
 	 * Give operations to calculServer
 	 * 

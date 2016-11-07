@@ -2,6 +2,7 @@ package ca.polymtl.inf4410.tp2.server;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
@@ -14,20 +15,26 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 
-import ca.polymtl.inf4410.tp2.client.CalculServer;
-import ca.polymtl.inf4410.tp2.shared.CalculServerInterface;
+import com.sun.beans.util.Cache;
+
+import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
 import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 
-public class Repartiteur implements Runnable {
+public class Repartitor {
 
 	/**
 	 * IP of the remove server
 	 */
 	private static final String REMOTE_SERVER_IP = "127.0.0.1";
 
+	private static final String PATH_CONFIG_CALCULOUS_SERVERS = "/config/servers";
+	
+	private static final int SEM_C_NUMBER_OF_TOKEN = 1;
+	private static final int SEM_TVC_NUMBER_OF_TOKEN = 1;
+	
 	/**
 	 * Error exit IO code
 	 */
@@ -51,7 +58,7 @@ public class Repartiteur implements Runnable {
 	/**
 	 * Minimum number of unit operation to do by a server (q value)
 	 */
-	private static final int MINIMUM_NUMBER_OF_OPERATIONS = 3;
+	private static final int MINIMUM_NUMBER_OF_OPERATIONS = 2;
 	
 	/**
 	 * ArrayList to store the calculations to do
@@ -66,7 +73,17 @@ public class Repartiteur implements Runnable {
 	/**
 	 * ArrayList to store the calculations to verify
 	 */
-	private ArrayList<String> toVerifyCalculations;
+	private ArrayList<Task> toVerifyCalculations;
+	
+	/**
+	 * ArrayList to store the calculations to verify
+	 */
+	private HashMap<CalculousServerInterface, CalculousServerInformation> serverInformations;
+	
+	/**
+	 * Semaphore to provide access to the calculations to verify structure
+	 */
+	private Semaphore toVerifyCalculationsSemaphore;
 	
 	/**
 	 * Boolean to know if the repartitor is in safe mode or not
@@ -76,17 +93,18 @@ public class Repartiteur implements Runnable {
 	/**
 	 * Hashmap to match the servers with its informations
 	 */
-	private HashMap<CalculServerInterface, CalculServerInfos> servers;
+	private HashMap<CalculousServerInterface, CalculousServerInformation> servers;
+	
+	
+	private ArrayList<CalculousServerInterface> CalculousServeurs;
 	
 	/**
 	 * The distant servers used for our project
 	 */
-	private CalculServerInterface distantServerStub = null;
-	private CalculServerInterface distantServerStub2 = null;
-	private CalculServerInterface distantServerStub3 = null;
-	private int port1 = 5010;
-	private int port2 = 5020;
-	private int port3 = 5030;
+	private CalculousServerInterface distantServerStub = null;
+
+	private int port = 5010;
+
 
 	/**
 	 * Public constructor to create a Repartiteur instance.
@@ -94,29 +112,52 @@ public class Repartiteur implements Runnable {
 	 * @param distantServerHostname
 	 *            The IP used to connect to the remote server
 	 */
-	public Repartiteur(String distantServerHostname) {
-		super();
+	public Repartitor(String distantServerHostname) {
 
-		calculationsSemaphore = new Semaphore(1);
-		calculations = new ArrayList<String>();
-		toVerifyCalculations = new ArrayList<>();
-
+		calculationsSemaphore = new Semaphore(SEM_C_NUMBER_OF_TOKEN);
+		calculations = new ArrayList<>();
 		
+		toVerifyCalculationsSemaphore = new Semaphore(SEM_TVC_NUMBER_OF_TOKEN);
+		toVerifyCalculations = new ArrayList<>();
+		
+		serverInformations = new HashMap<>();
+		
+		CalculousServeurs = new ArrayList<>();
+
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
 
+		loadServer();
 		if (distantServerHostname != null) {
-			distantServerStub = loadServerStub(distantServerHostname, port1);
-			distantServerStub2 = loadServerStub(distantServerHostname, port2);
-			distantServerStub3 = loadServerStub(distantServerHostname, port3);
+			distantServerStub = loadServerStub(distantServerHostname, port);
+		}
+		
+	}
+
+	private void loadServer() {
+		try {
+			FileReader fr = new FileReader(PATH_CONFIG_CALCULOUS_SERVERS);
+			BufferedReader br = new BufferedReader(fr);
+			String line = null;
+
+			while ((line = br.readLine()) != null) {
+				String[] array = line.split(" ");
+				CalculousServerInterface csi = loadServerStub(array[0], Integer.parseInt(array[1]));
+				CalculousServeurs.add(csi);
+				serverInformations.put(csi, new CalculousServerInformation(MINIMUM_NUMBER_OF_OPERATIONS));
+				
+			}
+		} catch (IOException e)
+		{	// TODO : gestion exception proprement
+			e.printStackTrace();
 		}
 	}
 
 	public static void main(String[] args) {
 
 		// Creation of the repartitor instance
-		Repartiteur repartiteur = new Repartiteur(REMOTE_SERVER_IP);
+		Repartitor repartiteur = new Repartitor(REMOTE_SERVER_IP);
 
 		System.out.println("Lancement du repartiteur ...");
 
@@ -125,10 +166,9 @@ public class Repartiteur implements Runnable {
 			repartiteur.setSafeMode(true);
 			System.out.println("Safe mode détecté.");
 		}
-
+		
 		// Start repartitor's job
 		repartiteur.runRepartitor();
-
 	}
 
 	/**
@@ -137,12 +177,12 @@ public class Repartiteur implements Runnable {
 	 * @param hostname
 	 * @return
 	 */
-	private CalculServerInterface loadServerStub(String hostname, int port) {
-		CalculServerInterface stub = null;
+	private CalculousServerInterface loadServerStub(String hostname, int port) {
+		CalculousServerInterface stub = null;
 
 		try {
 			Registry registry = LocateRegistry.getRegistry(hostname);
-			stub = (CalculServerInterface) registry.lookup("server" + port);
+			stub = (CalculousServerInterface) registry.lookup("server" + port);
 			try {
 				System.out.println(InetAddress.getLocalHost().getHostName());
 			} catch (Exception e) {
@@ -168,25 +208,26 @@ public class Repartiteur implements Runnable {
 		String split[] = null;
 
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+		System.out.println("Chargement des serveurs ...");
+		loadServer();
 		
 		System.out.println("Attente des commandes ...");
-
 		try {
 			while ((commande = reader.readLine()) != null) {
 				split = commande.split(" ");
 				String command = split[0];
 				String arg1 = split[1];
 
-				if (command.equals("loadFile")) {
-					// TODO : Start to call the calculous servers
+				if (command.equals("compute")) {
+					// Load the calculous servers
 					try {
 						storeCalculations(arg1);
 					} catch (IOException e) {
 						System.err.println("Probleme d'acces au fichier : \"" + arg1 + "\".");
 					}
-				} else if (command.equals("compute")) { 
-					// TODO : Do the job
-					execute(arg1);
+					// Do the job
+					execute();
 				}
 			}
 		} catch (IOException e) {
@@ -196,78 +237,10 @@ public class Repartiteur implements Runnable {
 		}
 	}
 
-	private void execute(String filename) throws IOException {
-
-		Semaphore semaphore = new Semaphore(1);
-
-		String line = null;
-		int compteur = 0;
-		String message[] = new String[3];
-		int result = 0;
-
-		FileInputStream fis = new FileInputStream(filename);
-		InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
-		BufferedReader br = new BufferedReader(isr);
-
-		while ((line = br.readLine()) != null) {
-
-			// Buffer pour envoie des calculs a effectuer au serveur
-			message[compteur] = line;
-
-			if (compteur == 2) {
-				// Essai d'envoie du message
-				try {
-					result += calculate(distantServerStub, message);
-				} catch (RemoteException e) {
-					// Erreur RMI
-					System.err.println("Erreur RMI");
-					e.printStackTrace();
-					System.exit(ERROR_RMI);
-				} catch (OverloadedServerException e) {
-					// Erreur surcharge serveur
-					System.out.println("Server surcharge !");
-					System.out.println("Renvoie du message vers un autre client !");
-					// TODO : implem
-				}
-
-				// Reset du compteur
-				compteur = 0;
-				// Appplication du modulo
-				result = result % 4000;
-			} else {
-				// On a pas atteint le nombre de message a send, on continue a
-				// lire le fichier
-				compteur++;
-			}
-		}
-
-		// Cas des fins de fichier et ou il reste des calculs a effectuer
-		// mais que ce n'est pas un multiple valable pour la capacite du serveur
-		if (compteur != 0) {
-			String finalMessage[] = new String[compteur];
-
-			// Remplissage du message final
-			for (int i = 0; i < compteur; i++) {
-				finalMessage[i] = message[i];
-			}
-
-			// Envoie du message
-			try {
-				// TODO fix server dispatch
-				result += calculate(distantServerStub, finalMessage);
-			} catch (OverloadedServerException e) {
-				// Erreur surcharge serveur
-				System.out.println("Server surcharge !");
-				System.out.println("Renvoie du message vers un autre client !");
-				// TODO : implem
-			}
-
-			// Final modulo
-			result = result % 4000;
-		}
-
-		System.out.println("Resultat des calculs : " + result);
-		br.close();
+	private void execute() throws IOException {
+		// TODO : change to manage all servers
+		RepartitorThread thread = new RepartitorThread(this, distantServerStub);
+		thread.start();
 	}
 
 	/**
@@ -291,17 +264,53 @@ public class Repartiteur implements Runnable {
 		// Close the buffer 
 		br.close();
 	}
+	
+	public String[] getSomeCalculousToVerify(CalculousServerInterface stub) throws NoMoreWorkToVerifyException {
 
-	private int calculate(CalculServerInterface server, String operations[]) throws RemoteException, OverloadedServerException {
-		return server.calculate(operations);
+		// If the map is empty we don't need to do the job
+		if(toVerifyCalculations.isEmpty()) {
+			throw new NoMoreWorkToVerifyException();
+		}
+
+		// Protect the datastructure by using a semaphore
+		try {
+			toVerifyCalculationsSemaphore.acquire(1);
+		} catch (InterruptedException e) {
+			System.err.println("Probleme de semaphore.");
+		}
+		
+		String[] calculous = null;
+		for(Task task : toVerifyCalculations) {
+
+			if(!stub.equals(task.getAuthor())) {
+				calculous = task.getCalculous();
+			} else {
+				continue;
+			}
+		}
+		
+		// Case all calculous to verify have been done by the available server
+		if(calculous.equals(null)) {
+			throw new NoMoreWorkToVerifyException();
+		}
+		
+		// Release the token to the semaphore
+		toVerifyCalculationsSemaphore.release(1);
+
+		return calculous;
 	}
-
+	
 	/**
 	 * Get some calculous from the calculous datastructure
 	 * @return a minimum number of calculous to do
 	 */
-	private String[] getSomeCalculous() {
+	public String[] getSomeCalculous() throws NoMoreWorkException {
 
+		// If the data structure is empty we don't need to do the job
+		if(calculations.isEmpty()) {
+			throw new NoMoreWorkException();
+		}
+		
 		// Protect the datastructure by using semaphore
 		try {
 			calculationsSemaphore.acquire(1);
@@ -309,7 +318,7 @@ public class Repartiteur implements Runnable {
 			System.err.println("Probleme de semaphore.");
 		}
 
-		String[] calculous = new String[3];
+		String[] calculous = null;
 		int compteur = 0;
 		
 		// Store the calculous information into an array
@@ -335,32 +344,6 @@ public class Repartiteur implements Runnable {
 		return calculous;
 	}
 
-	@Override
-	public void run() {
-		// TODO : implements thread logic
-		int result = -1;
-		
-		// Tant qu'il y a des calculs a faire
-		while(!calculations.isEmpty()) {
-			// On récupère la liste des calculs
-			String[] calculous = getSomeCalculous();
-			// On créé une statistique associée
-			CalculServerInfos css = new CalculServerInfos(calculous);
-			
-			
-			try {
-				result = calculate(distantServerStub, calculous);
-			} catch (RemoteException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (OverloadedServerException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			
-		}
-	}
-
 	/**
 	 * SafeMode setter
 	 * 
@@ -369,6 +352,30 @@ public class Repartiteur implements Runnable {
 	 */
 	public void setSafeMode(boolean b) {
 		this.safeMode = b;
+	}
+
+	public void addCalculousToVerify(CalculousServerInterface stub, String[] calculous) {
+		toVerifyCalculations.add(new Task(stub, calculous));	
+	}
+
+	public void addCalculous(String[] calculous) {
+		try {
+			toVerifyCalculationsSemaphore.acquire(1);
+		} catch (InterruptedException e) {
+			// TODO : gérer
+			e.printStackTrace();
+		}
+		
+		for(int i = 0; i < calculous.length; i++) {
+			calculations.add(calculous[i]);
+		}
+		
+		toVerifyCalculationsSemaphore.release(1);
+	}
+
+	// TODO
+	public void reduceCapacity(CalculousServerInterface serverStub) {
+
 	}
 
 }

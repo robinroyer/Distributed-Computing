@@ -1,22 +1,24 @@
 package ca.polymtl.inf4410.tp2.server;
 
-public class CalculServerInfos {
+public class CalculousServerInformation {
 
-	int capacity;
-	int result;
-	boolean isOptimized;
-	String[] calculous;
-	
+	private int capacity;
+	private int result;
+	private boolean isOptimized;
+
 	/**
 	 * Default constructor
 	 */
-	public CalculServerInfos() {}
-	
-	public CalculServerInfos(String[] calculous) {
-		this.calculous = calculous;
+	public CalculousServerInformation() {}
+
+	/**
+	 * Normal construtor with capacity as parameter
+	 * @param capacity
+	 */
+	public CalculousServerInformation(int capacity) {
 		this.isOptimized = false;
 		this.result = -1;
-		this.capacity = -1;
+		this.capacity = capacity;
 	}
 
 	/**
@@ -61,20 +63,6 @@ public class CalculServerInfos {
 		this.isOptimized = isOptimized;
 	}
 
-	/**
-	 * @return the calculous
-	 */
-	public String[] getCalculous() {
-		return calculous;
-	}
-
-	/**
-	 * @param calculous the calculous to set
-	 */
-	public void setCalculous(String[] calculous) {
-		this.calculous = calculous;
-	}
-	
 	// 0 - Repartiteur deux modes : un safe (no verif) et un non safe (activation verif)
 	// 1 - Une liste de calcul unitaire avec tous les calculs du fichier
 	// 2 - Chaque Thread par serveur recolte X taches unitaires qu il supprime de la liste des taches unitaires
