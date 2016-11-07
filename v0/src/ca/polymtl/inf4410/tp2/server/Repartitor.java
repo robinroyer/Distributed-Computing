@@ -26,7 +26,7 @@ public class Repartitor {
 	 */
 	private static final String REMOTE_SERVER_IP = "127.0.0.1";
 
-	private static final String PATH_CONFIG_CALCULOUS_SERVERS = "/config/servers.config";
+	private static final String PATH_CONFIG_CALCULOUS_SERVERS = "./config/servers.config";
 
 	private static final int SEM_C_NUMBER_OF_TOKEN = 1;
 	private static final int SEM_TVC_NUMBER_OF_TOKEN = 1;

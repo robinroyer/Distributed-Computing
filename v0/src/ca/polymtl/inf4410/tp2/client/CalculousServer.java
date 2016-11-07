@@ -52,14 +52,14 @@ public class CalculousServer implements CalculousServerInterface {
 	 */
 	public static void main(String[] args) {
 		// TODO: add args to constructor
-		CalculousServer server = new CalculousServer(args);
-		server.run(Integer.parseInt(args[0]));
+		CalculousServer server = new CalculousServer(args[0], Integer.parseInt(args[1]));
+		server.run();
 	}
 
 	/**
 	 * Main method to run the server.
 	 */
-	private void run(int port) {
+	private void run() {
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
@@ -85,20 +85,11 @@ public class CalculousServer implements CalculousServerInterface {
 	 *            Args where we should fin
 	 */
 
-	public CalculousServer(String[] args) {
-		this(0, 3);
-		// TODO: MODIFY HERE TO GET ARGS
-	}
-
-	/**
-	 * Constructor with confidence and capacity
-	 * 
-	 * @param confidence
-	 * @param capacity
-	 */
-	private CalculousServer(int confidence, int capacity) {
-		this.confidence = confidence;
-		this.capacity = capacity;
+	public CalculousServer(String ip, int port) {
+		this.ip = ip;
+		this.port = port;
+		this.confidence = 0;
+		this.capacity = 3;
 	}
 
 	@Override
