@@ -1,5 +1,6 @@
-pour lance un client depuis son ip
+pour lance un client et un serveur local
 
-
+`ant`
 `rmiregistry 5010 &`
-`./client 132.207.12.37 5010`
+`./client 127.0.0.1 5010`
+`./server`
