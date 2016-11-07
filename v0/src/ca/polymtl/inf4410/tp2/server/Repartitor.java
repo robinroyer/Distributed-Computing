@@ -21,11 +21,6 @@ import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
 
 public class Repartitor {
 
-	/**
-	 * IP of the remove server
-	 */
-	private static final String REMOTE_SERVER_IP = "127.0.0.1";
-
 	private static final String PATH_CONFIG_CALCULOUS_SERVERS = "./config/servers.config";
 
 	private static final int SEM_C_NUMBER_OF_TOKEN = 1;
@@ -101,7 +96,7 @@ public class Repartitor {
 	 * @param distantServerHostname
 	 *            The IP used to connect to the remote server
 	 */
-	public Repartitor(String distantServerHostname) {
+	public Repartitor() {
 
 		calculationsSemaphore = new Semaphore(SEM_C_NUMBER_OF_TOKEN);
 		calculations = new ArrayList<>();
@@ -130,14 +125,17 @@ public class Repartitor {
 	public static void main(String[] args) {
 
 		// Creation of the repartitor instance
-		Repartitor repartiteur = new Repartitor(REMOTE_SERVER_IP);
+		Repartitor repartiteur = new Repartitor();
 
 		System.out.println("Lancement du repartiteur ...");
 
 		// Check is safemode is enable or not
-		if (args[1] == "-S") {
+		if (args[0].equals("-S")) {
 			repartiteur.setSafeMode(true);
 			System.out.println("Safe mode detecte.");
+		} else {
+			System.out.println("Safe mode non detecte.");
+			System.out.println("Les calculs ne seront pas verifies.");
 		}
 
 		// Start repartitor's job
