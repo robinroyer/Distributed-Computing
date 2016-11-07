@@ -15,13 +15,9 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
-import com.sun.beans.util.Cache;
-
 import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
-import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 
 public class Repartitor {
 
@@ -164,7 +160,7 @@ public class Repartitor {
 		// Check is safemode is enable or not
 		if (args[1] == "-S") {
 			repartiteur.setSafeMode(true);
-			System.out.println("Safe mode détecté.");
+			System.out.println("Safe mode detecte.");
 		}
 		
 		// Start repartitor's job
@@ -362,7 +358,7 @@ public class Repartitor {
 		try {
 			toVerifyCalculationsSemaphore.acquire(1);
 		} catch (InterruptedException e) {
-			// TODO : gérer
+			// TODO : gerer
 			e.printStackTrace();
 		}
 		

@@ -24,19 +24,19 @@ public class RepartitorThread extends Thread {
 		int result = -1;
 		boolean verify = false;
 
-		// On récupère la liste des calculs à faire
+		// On recupere la liste des calculs a faire
 		try {
-			System.out.println("Vérification des calculs à faire ...");
+			System.out.println("Verification des calculs a faire ...");
 			calculous = repartitor.getSomeCalculousToVerify(serverStub);
 			verify = true;
 		} catch (NoMoreWorkToVerifyException e1) {
-			System.out.println("Pas de calculs à vérifier pour moi ...");
+			System.out.println("Pas de calculs a verifier pour moi ...");
 			
-			System.out.println("Vérification des calculs à faire ...");
+			System.out.println("Verification des calculs a faire ...");
 			try {
 				calculous = repartitor.getSomeCalculous();
 			} catch (NoMoreWorkException e) {
-				System.out.println("Plus de calculs à faire ...");
+				System.out.println("Plus de calculs a faire ...");
 			}
 		}
 
