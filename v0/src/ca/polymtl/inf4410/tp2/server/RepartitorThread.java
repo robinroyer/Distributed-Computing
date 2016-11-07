@@ -37,6 +37,7 @@ public class RepartitorThread extends Thread {
 			proceedToVerification(taskToVerify);
 		}
 
+		// TODO
 		// Si on a pas de verification a faire, on procede aux calculs classiques
 		System.out.println("Verification des calculs a faire ...");
 		try {

@@ -112,9 +112,6 @@ public class Repartitor {
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
-
-		System.out.println("Chargement des serveurs ...");
-		loadServer();
 	}
 
 	/**
@@ -130,7 +127,7 @@ public class Repartitor {
 		System.out.println("Lancement du repartiteur ...");
 
 		// Check is safemode is enable or not
-		if (args[0].equals("-S")) {
+		if (args.length > 1 && args[0].equals("-S")) {
 			repartiteur.setSafeMode(true);
 			System.out.println("Safe mode detecte.");
 		} else {
@@ -153,6 +150,9 @@ public class Repartitor {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				System.in));
 
+		System.out.println("Chargement des serveurs ...");
+		loadServer();
+		
 		System.out.println("Attente des commandes ...");
 		try {
 			while ((commande = reader.readLine()) != null) {
