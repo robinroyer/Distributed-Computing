@@ -4,7 +4,6 @@ import java.rmi.RemoteException;
 import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
 import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.Semaphore;
 
 
@@ -20,6 +19,8 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
          * task list semaphore         
          */
         protected Semaphore tasksLock;
+        
+        private Task taskToCheck;
 
         
         /**
@@ -51,9 +52,11 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
 
 	@Override
 	public void run() {
-                int res = 0;
-                int operationNumber = 0;
-		while (repartitor.threadsShouldContinue()){                                			
+                int res;
+                int operationNumber;
+		while (repartitor.threadsShouldContinue()){
+                        
+                        // Picking unit operation to calculate
                         try {
                                 operationNumber = threadedPickingCalculous();
                                 res = calculate(serverStub, calculousOwnedByThread);
@@ -62,21 +65,38 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                         }
                         catch(NoMoreWorkException | InterruptedException | RemoteException e){}
                         catch (OverloadedServerException ex) {
-                            try {
-                                pushBackThreadCalculousToCalculous();
-                            } catch (InterruptedException ex1) {}
-                            handleOverload();
+                                try {
+                                    pushBackThreadCalculousToCalculous();
+                                } catch (InterruptedException ex1) {}
+                                handleOverload();
                         }
+                        
+                        // picking a task to verify
+                        try{
+                                threadedPickingTaskToVerify();
+                        
+                        }catch(Exception e){}
 		}
 	}
         
         
         private void threadedAddingTask(int toAdd, int operationNumber) throws InterruptedException{
-//                resultLock.acquire();
-//                result[0] += toAdd % 4000;
-//                result[1]+= operationNumber;
-//                resultLock.release();            
+                Task newTask = new Task(serverStub, calculousOwnedByThread, toAdd, operationNumber);
+                // CRITICAL ZONE
+                tasksLock.acquire();
+                tasks.add(newTask);
+                tasksLock.release();            
         }
                 
-                     
+        private void threadedPickingTaskToVerify() throws InterruptedException{
+                // CRITICAL ZONE
+                tasksLock.acquire();
+                for (Task task : tasks) {
+                        if (task.shouldBeChecked()) {
+                                taskToCheck = task;
+                                taskToCheck.attributeVerificationToServer(this.serverStub);
+                        }
+                }
+                tasksLock.release();
+        }             
 }

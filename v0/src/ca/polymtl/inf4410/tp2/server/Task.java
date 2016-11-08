@@ -1,55 +1,67 @@
 package ca.polymtl.inf4410.tp2.server;
 
 import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
+import java.util.ArrayList;
 
 public class Task {
 
-	private String calculous[];
-	
-	private CalculousServerInterface author;
-	
-	private int resulttoVerify;
-	
-	public Task(CalculousServerInterface server, String[] calculous) {
-		this.calculous = calculous;
-		this.author = server;
-		this.resulttoVerify = -1;
-	}
-	
-	public String[] getCalculous() {
-		return calculous;
-	}
-	
-	public CalculousServerInterface getAuthor() {
-		return author;
-	}
+	public ArrayList<String> calculousList;
+        public ArrayList<String> calculousToCheck;  
+        public ArrayList<String> calculousChecked;  
+        
+	private final int operationNumberToCheck;
+        private int operationNumberChecked;
 
-	/**
-	 * @return the resulttoVerify
-	 */
-	public int getResulttoVerify() {
-		return resulttoVerify;
-	}
+        
+        
+        
+	public CalculousServerInterface firstServer;	
+        public CalculousServerInterface secondServer;
 
-	/**
-	 * @param resulttoVerify the resulttoVerify to set
-	 */
-	public void setResulttoVerify(int resulttoVerify) {
-		this.resulttoVerify = resulttoVerify;
-	}
+	private final int firstResult;
+        private int secondResult;
 
-	/**
-	 * @param calculous the calculous to set
-	 */
-	public void setCalculous(String[] calculous) {
-		this.calculous = calculous;
+        
+        
+	
+	public Task(CalculousServerInterface server, String[] calculous, int result, int operationNumber) {
+                // init the lists
+                calculousList = new ArrayList<>();                
+                for (String calc : calculous) {
+                        calculousList.add(calc);
+                }                
+                calculousToCheck = new ArrayList<String>(calculousList);
+                calculousChecked = new ArrayList<String>();
+                
+		this.firstServer = server;
+                this.secondServer = null;
+                
+		this.firstResult = result;
+                this.secondResult = 0;
+                
+                this.operationNumberToCheck = operationNumber;                
+                this.operationNumberChecked = 0;                                              
 	}
-
-	/**
-	 * @param author the author to set
-	 */
-	public void setAuthor(CalculousServerInterface author) {
-		this.author = author;
-	}
-
+	        
+        
+        public void addVerificationResult(int result, String[] list, int numberOfOperations){
+            secondResult += result;
+            for (String calc : list) {
+                    calculousChecked.add(calc);
+            }
+            operationNumberChecked += numberOfOperations;
+        }
+        
+        public boolean shouldBeChecked(){ return secondServer == null; }       
+	       
+        public boolean isTaskCorrect(int secondResult){ return secondResult == firstResult; }
+        
+        public boolean isTaskVerified(){
+            return operationNumberChecked == operationNumberToCheck && calculousToCheck.isEmpty();
+        }
+        
+        public void attributeVerificationToServer(CalculousServerInterface server){
+            secondServer = server;
+        }
+        
 }
