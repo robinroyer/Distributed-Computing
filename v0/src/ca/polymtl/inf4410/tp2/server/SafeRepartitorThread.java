@@ -81,12 +81,12 @@ public class SafeRepartitorThread extends Thread {
 	@Override
 	public void run() {
                 int res = 0;
-                
+                int operationNumber = 0;
 		while (repartitor.threadsShouldContinue()){                                			
                         try {
-                                threadedPickingCalculous();
+                                operationNumber = threadedPickingCalculous();
                                 res = calculate(serverStub, calculousOwnedByThread);
-                                threadedAddingResult(res);
+                                threadedAddingResult(res, operationNumber);
                                 handleUnderload();
                         }
                         catch(NoMoreWorkException | InterruptedException | RemoteException e){}
@@ -105,7 +105,7 @@ public class SafeRepartitorThread extends Thread {
 		return server.calculate(operations);
 	}
         
-        private void threadedPickingCalculous() throws NoMoreWorkException, InterruptedException{        
+        private int threadedPickingCalculous() throws NoMoreWorkException, InterruptedException{        
 		if (calculous.isEmpty())
 			throw new NoMoreWorkException();	
                 
@@ -124,6 +124,8 @@ public class SafeRepartitorThread extends Thread {
                         calculousNumber++;
 		}
                 calculousLock.release();
+                
+                return calculousNumber;
         }
                     
         private void handleOverload(){
@@ -136,9 +138,10 @@ public class SafeRepartitorThread extends Thread {
                         nextCapacity++;                
         }
         
-        private void threadedAddingResult(int toAdd) throws InterruptedException{
+        private void threadedAddingResult(int toAdd, int operationNumber) throws InterruptedException{
                 resultLock.acquire();
                 result[0] += toAdd % 4000;
+                result[1]+= operationNumber;
                 resultLock.release();            
         }
         
