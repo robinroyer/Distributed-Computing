@@ -110,7 +110,7 @@ public class Repartitor {
         private int operationNumber;
         
         
-private ArrayList<CalculousServerInterface> CalculousServeurs;
+        private ArrayList<CalculousServerInterface> CalculousServeurs;
 
 	/**
 	 * The distant servers used for our project
@@ -128,8 +128,8 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
 		calculationsSemaphore = new Semaphore(SEM_C_NUMBER_OF_TOKEN);
 		calculations = new ArrayList<>();
 
-		//toVerifyCalculationsSemaphore = new Semaphore(SEM_TVC_NUMBER_OF_TOKEN);
-		//toVerifyCalculations = new ArrayList<>();
+		toVerifyCalculationsSemaphore = new Semaphore(SEM_TVC_NUMBER_OF_TOKEN);
+		toVerifyCalculations = new ArrayList<>();
 
 		serverInformations = new HashMap<>();
 		CalculousServeurs = new ArrayList<>();
@@ -267,18 +267,19 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
                     }
                 
                 }else{
-                    //unsafe mode
-                    // => SafeRepartitorThread 
-//                    for (CalculousServerInterface server : CalculousServeurs) {
-//			UnsafeRepartitorThread thread = new UnsafeRepartitorThread(this, server);
-//			threads.add( thread );
-//                        thread.start();
-//                    }                    
+                    for (CalculousServerInterface server : CalculousServeurs) {
+                        
+			UnsafeRepartitorThread thread = new UnsafeRepartitorThread( this, server,
+                                calculations, calculationsSemaphore, globalResult, globalResultLock,
+                                toVerifyCalculations, toVerifyCalculationsSemaphore );                        
+			threads.add( thread );
+                        thread.start();
+                    }                    
                 }
                 
-                Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber);
+                Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber, safeMode);
                         
-                // SYNCHRONISATION
+                // THREADS SYNCHRONISATION
                 coordinationThread.join();
                 for (Thread thread : threads) {
                     thread.join();

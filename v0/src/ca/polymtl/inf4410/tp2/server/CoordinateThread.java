@@ -34,18 +34,33 @@ public class CoordinateThread extends Thread {
         
         private int operationNumber;
         
+        private boolean isSafe;
+        
       
-        CoordinateThread(Repartitor repart,  int[] globalResult, Semaphore globalResultLock, int operationNum) {
+        CoordinateThread(Repartitor repart,  int[] globalResult, Semaphore globalResultLock, int operationNum, boolean safeMode) {
                 repartitor = repart;
                 result = globalResult;
                 resulLock = globalResultLock;
                 operationNumber = operationNum;
+                isSafe = safeMode;
         }
 
 	@Override
 	public void run() {
-                
-		while (repartitor.threadsShouldContinue()){                                			
+                if (isSafe) {
+                        ThreadedSafeCoordination();
+                }
+                else{
+                        ThreadedUnsafeCoordination();
+                }   		
+	}
+        
+        
+        /**
+         * 
+         */
+        private void ThreadedSafeCoordination(){
+            while (repartitor.threadsShouldContinue()){                                			
                     try {
                         resulLock.acquire();
                         if(result[1] == operationNumber){
@@ -57,7 +72,27 @@ public class CoordinateThread extends Thread {
                     } catch (InterruptedException ex) {
                         Logger.getLogger(CoordinateThread.class.getName()).log(Level.SEVERE, null, ex);
                     }
-		}
-	}
+		}                
+        }
+        
+        
+        /**
+         * TODO:implement
+         */
+        private void ThreadedUnsafeCoordination(){
+            while (repartitor.threadsShouldContinue()){                                			
+//                    try {
+//                        resulLock.acquire();
+//                        if(result[1] == operationNumber){
+//                                repartitor.stopTheThreads();
+//                        }
+//                        resulLock.release();
+//                        // check for all operations done
+//                        sleep(CHECKING_PERIOD);
+//                    } catch (InterruptedException ex) {
+//                        Logger.getLogger(CoordinateThread.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+		}                
+        }
 
 }
