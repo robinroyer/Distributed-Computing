@@ -19,23 +19,23 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
 
 	@Override
 	public void run() {
-                int res = 0;
-                int operationNumber = 0;
-		while (repartitor.threadsShouldContinue()){                                			
-                        try {
-                                operationNumber = threadedPickingCalculous();
-                                res = calculate(serverStub, calculousOwnedByThread);
-                                threadedAddingResult(res, operationNumber);
-                                handleUnderload();
-                        }
-                        catch(NoMoreWorkException | InterruptedException | RemoteException e){}
-                        catch (OverloadedServerException ex) {
-                            try {
-                                pushBackThreadCalculousToCalculous();
-                            } catch (InterruptedException ex1) {}
-                            handleOverload();
-                        }
-		}
+//                int res = 0;
+//                int operationNumber = 0;
+//		while (repartitor.threadsShouldContinue()){                                			
+//                        try {
+//                                operationNumber = threadedPickingCalculous();
+//                                res = calculate(serverStub, calculousOwnedByThread);
+//                                threadedAddingResult(res, operationNumber);
+//                                handleUnderload();
+//                        }
+//                        catch(NoMoreWorkException | InterruptedException | RemoteException e){}
+//                        catch (OverloadedServerException ex) {
+//                            try {
+//                                pushBackThreadCalculousToCalculous();
+//                            } catch (InterruptedException ex1) {}
+//                            handleOverload();
+//                        }
+//		}
 	}
         
                      
