@@ -25,7 +25,7 @@ public class Repartitor {
 
 	private static final int SEM_C_NUMBER_OF_TOKEN = 1;
 	private static final int SEM_TVC_NUMBER_OF_TOKEN = 1;
-
+        private static final String SAFE_ARGUMENT = "-S";
 	/**
 	 * Error exit IO code
 	 */
@@ -54,9 +54,7 @@ public class Repartitor {
 	/**
 	 * ArrayList to store the calculations to do
 	 */
-	private ArrayList<String> calculations;
-
-	private int globalResult;
+	private ArrayList<String> calculations;	
 
 	/**
 	 * Semaphore to provide access to the calculations structure
@@ -83,7 +81,29 @@ public class Repartitor {
 	 */
 	private boolean safeMode;
 
-	private ArrayList<CalculousServerInterface> CalculousServeurs;
+	/**
+	 * Boolean to control threads ending
+	 */
+	private boolean threadsShouldEnd = false;
+
+        /**
+         * Arrayslist of our different thread
+         */
+        private ArrayList<Thread> threads;
+        
+        /**
+         * GlobalResult is an array of size 1 in order to be able to give it by
+         * ref to threads
+         */
+        private int[] globalResult;
+        
+        /**
+         * Semaphore protecting globalresult
+         */
+        private Semaphore globalResultLock;
+        
+        
+private ArrayList<CalculousServerInterface> CalculousServeurs;
 
 	/**
 	 * The distant servers used for our project
@@ -93,21 +113,24 @@ public class Repartitor {
 	/**
 	 * Public constructor to create a Repartiteur instance.
 	 * 
-	 * @param distantServerHostname
-	 *            The IP used to connect to the remote server
 	 */
-	public Repartitor() {
+	public Repartitor(boolean isSafe) {
 
+                safeMode = isSafe;
+            
 		calculationsSemaphore = new Semaphore(SEM_C_NUMBER_OF_TOKEN);
 		calculations = new ArrayList<>();
 
-		toVerifyCalculationsSemaphore = new Semaphore(SEM_TVC_NUMBER_OF_TOKEN);
-		toVerifyCalculations = new ArrayList<>();
+		//toVerifyCalculationsSemaphore = new Semaphore(SEM_TVC_NUMBER_OF_TOKEN);
+		//toVerifyCalculations = new ArrayList<>();
 
 		serverInformations = new HashMap<>();
 		CalculousServeurs = new ArrayList<>();
+                
+                threads = new ArrayList<>();
 
-		globalResult = 0;
+		globalResult = new int[0];
+                globalResult[0] = 0;
 
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
@@ -118,23 +141,21 @@ public class Repartitor {
 	 * Main point of the program
 	 * 
 	 * @param args
+         * @throws java.lang.InterruptedException
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 
-		// Creation of the repartitor instance
-		Repartitor repartiteur = new Repartitor();
-
-		System.out.println("Lancement du repartiteur ...");
-
-		// Check is safemode is enable or not
-		if (args.length > 1 && args[0].equals("-S")) {
-			repartiteur.setSafeMode(true);
+                // checking safe mode
+		boolean isSafe = false;
+		if (args.length > 1 && args[0].equals(SAFE_ARGUMENT)) {
+			isSafe = true;
 			System.out.println("Safe mode detecte.");
 		} else {
-			System.out.println("Safe mode non detecte.");
-			System.out.println("Les calculs ne seront pas verifies.");
+			System.out.println("Mode non Safe -> Les calculs ne seront pas verifies.");
 		}
 
+                // Creation of the repartitor instance
+		Repartitor repartiteur = new Repartitor(isSafe);
 		// Start repartitor's job
 		repartiteur.runRepartitor();
 	}
@@ -142,7 +163,7 @@ public class Repartitor {
 	/**
 	 * Main private method to run the repartitor
 	 */
-	private void runRepartitor() {
+	private void runRepartitor() throws InterruptedException {
 
 		String commande = null;
 		String split[] = null;
@@ -169,10 +190,7 @@ public class Repartitor {
 								+ arg1 + "\".");
 					}
 					// Do the job
-					execute();
-					// Show result
-					System.out.println("Resultats des calculs => "
-							+ globalResult);
+					startThreadsAndJoin();					
 				}
 			}
 		} catch (IOException e) {
@@ -239,13 +257,35 @@ public class Repartitor {
 		return stub;
 	}
 
-	private void execute() throws IOException {
-		// TODO : change to manage all servers
-		for (CalculousServerInterface server : CalculousServeurs) {
-			RepartitorThread thread = new RepartitorThread(this, server);
-			thread.start();
-		}
-	}
+	private void startThreadsAndJoin() throws IOException, InterruptedException {
+		if (safeMode){
+                    for (CalculousServerInterface server : CalculousServeurs) {
+			SafeRepartitorThread thread = 
+                                new SafeRepartitorThread( this, server, calculations,
+                                        calculationsSemaphore, globalResult, globalResultLock );
+			threads.add( thread );
+                        thread.start();
+                    }
+                
+                }else{
+                    //unsafe mode
+                    // => SafeRepartitorThread 
+//                    for (CalculousServerInterface server : CalculousServeurs) {
+//			UnsafeRepartitorThread thread = new UnsafeRepartitorThread(this, server);
+//			threads.add( thread );
+//                        thread.start();
+//                    }
+                    
+                    // add thread to check work
+                }
+                        
+                for (Thread thread : threads) {
+                    thread.join();
+                }
+                
+                // print results
+                System.out.println("Resultats des calculs => " + globalResult);
+      	}
 
 	/**
 	 * Private method to store the initial calculations to do
@@ -351,15 +391,6 @@ public class Repartitor {
 		return calculous;
 	}
 
-	/**
-	 * SafeMode setter
-	 * 
-	 * @param true if the mode is enable, false otherwise
-	 */
-	public void setSafeMode(boolean b) {
-		this.safeMode = b;
-	}
-
 	public void addCalculousToVerify(CalculousServerInterface stub,
 			String[] calculous, int result) {
 		toVerifyCalculations.add(new Task(stub, calculous));
@@ -397,11 +428,11 @@ public class Repartitor {
 		toVerifyCalculations.remove(task);
 	}
 
-	public void storeResult(int result) {
-		this.globalResult += result % 4000;
-	}
-
-	public boolean getSafeMore() {
+	public boolean isSafeMode() {
 		return this.safeMode;
 	}
+        
+        public boolean threadsShouldContinue(){
+            return !threadsShouldEnd;
+        }
 }
