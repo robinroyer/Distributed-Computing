@@ -92,8 +92,10 @@ public class Repartitor {
         private ArrayList<Thread> threads;
         
         /**
-         * GlobalResult is an array of size 1 in order to be able to give it by
+         * GlobalResult is an array of size 2 in order to be able to give it by
          * ref to threads
+         * index 0 => the result
+         * index 1 => number of operation stacked in result
          */
         private int[] globalResult;
         
@@ -101,6 +103,11 @@ public class Repartitor {
          * Semaphore protecting globalresult
          */
         private Semaphore globalResultLock;
+        
+        /**
+         * number of operation provided to the repartitor
+         */
+        private int operationNumber;
         
         
 private ArrayList<CalculousServerInterface> CalculousServeurs;
@@ -166,36 +173,29 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
 	private void runRepartitor() throws InterruptedException {
 
 		String commande = null;
-		String split[] = null;
+		String commandes[] = null;
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				System.in));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 		System.out.println("Chargement des serveurs ...");
-		loadServer();
+		loadServerFromConfigFile();
 		
 		System.out.println("Attente des commandes ...");
 		try {
 			while ((commande = reader.readLine()) != null) {
-				split = commande.split(" ");
-				String command = split[0];
-				String arg1 = split[1];
+				commandes = commande.split(" ");
+				String command = commandes[0];
+				String filename = commandes[1];
 
 				if (command.equals("compute")) {
-					// Load the calculous servers
 					try {
-						storeCalculations(arg1);
-					} catch (IOException e) {
-						System.err.println("Probleme d'acces au fichier : \""
-								+ arg1 + "\".");
-					}
-					// Do the job
-					startThreadsAndJoin();					
+						parseCalculousFileToCalculous(filename);
+					} catch (IOException e) {}
+					startThreadsThenJoin();					
 				}
 			}
 		} catch (IOException e) {
-			System.err
-					.println("Erreur dans la lecture du flux d'entree sortie.");
+			System.err.println("Erreur dans la lecture du flux d'entree sortie.");
 			e.printStackTrace();
 			System.exit(ERROR_IO);
 		}
@@ -204,7 +204,7 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
 	/**
 	 * Load all the configuration of the calculous servers
 	 */
-	private void loadServer() {
+	private void loadServerFromConfigFile() {
 		try {
 			FileReader fr = new FileReader(PATH_CONFIG_CALCULOUS_SERVERS);
 			BufferedReader br = new BufferedReader(fr);
@@ -218,7 +218,6 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
 				serverInformations.put(csi, new CalculousServerInformation(
 						MINIMUM_NUMBER_OF_OPERATIONS));
 			}
-
 			br.close();
 		} catch (IOException e) { // TODO : gestion exception proprement
 			e.printStackTrace();
@@ -257,7 +256,7 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
 		return stub;
 	}
 
-	private void startThreadsAndJoin() throws IOException, InterruptedException {
+	private void startThreadsThenJoin() throws IOException, InterruptedException {
 		if (safeMode){
                     for (CalculousServerInterface server : CalculousServeurs) {
 			SafeRepartitorThread thread = 
@@ -274,17 +273,18 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
 //			UnsafeRepartitorThread thread = new UnsafeRepartitorThread(this, server);
 //			threads.add( thread );
 //                        thread.start();
-//                    }
-                    
-                    // add thread to check work
+//                    }                    
                 }
+                
+                Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber);
                         
+                // SYNCHRONISATION
+                coordinationThread.join();
                 for (Thread thread : threads) {
                     thread.join();
                 }
                 
-                // print results
-                System.out.println("Resultats des calculs => " + globalResult);
+                System.out.println("Resultats des calculs => " + globalResult[0]);
       	}
 
 	/**
@@ -293,7 +293,7 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
 	 * @param filename
 	 * @throws IOException
 	 */
-	private void storeCalculations(String filename) throws IOException {
+	private void parseCalculousFileToCalculous(String filename) throws IOException {
 		// Some declarations ...
 		String line = null;
 		FileInputStream fis = new FileInputStream(filename);
@@ -308,125 +308,126 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
 
 		// Close the buffer
 		br.close();
+                operationNumber = calculations.size();
 	}
 
-	public Task getTasksToVerify(CalculousServerInterface stub)
-			throws NoMoreWorkToVerifyException {
-
-		// If the map is empty we don't need to do the job
-		if (toVerifyCalculations.isEmpty()) {
-			throw new NoMoreWorkToVerifyException();
-		}
-
-		// Protect the datastructure by using a semaphore
-		try {
-			toVerifyCalculationsSemaphore.acquire(1);
-		} catch (InterruptedException e) {
-			System.err.println("Probleme de semaphore.");
-		}
-
-		Task taskToVerify = null;
-		for (Task task : toVerifyCalculations) {
-
-			if (!stub.equals(task.getAuthor())) {
-				taskToVerify = task;
-			} else {
-				continue;
-			}
-		}
-
-		// Case all calculous to verify have been done by the available server
-		if (taskToVerify.equals(null)) {
-			throw new NoMoreWorkToVerifyException();
-		}
-
-		// Release the token to the semaphore
-		toVerifyCalculationsSemaphore.release(1);
-
-		return taskToVerify;
-	}
+//	public Task getTasksToVerify(CalculousServerInterface stub)
+//			throws NoMoreWorkToVerifyException {
+//
+//		// If the map is empty we don't need to do the job
+//		if (toVerifyCalculations.isEmpty()) {
+//			throw new NoMoreWorkToVerifyException();
+//		}
+//
+//		// Protect the datastructure by using a semaphore
+//		try {
+//			toVerifyCalculationsSemaphore.acquire(1);
+//		} catch (InterruptedException e) {
+//			System.err.println("Probleme de semaphore.");
+//		}
+//
+//		Task taskToVerify = null;
+//		for (Task task : toVerifyCalculations) {
+//
+//			if (!stub.equals(task.getAuthor())) {
+//				taskToVerify = task;
+//			} else {
+//				continue;
+//			}
+//		}
+//
+//		// Case all calculous to verify have been done by the available server
+//		if (taskToVerify.equals(null)) {
+//			throw new NoMoreWorkToVerifyException();
+//		}
+//
+//		// Release the token to the semaphore
+//		toVerifyCalculationsSemaphore.release(1);
+//
+//		return taskToVerify;
+//	}
 
 	/**
 	 * Get some calculous from the calculous datastructure
 	 * 
 	 * @return a minimum number of calculous to do
 	 */
-	public String[] getSomeCalculous() throws NoMoreWorkException {
+//	public String[] getSomeCalculous() throws NoMoreWorkException {
+//
+//		// If the data structure is empty we don't need to do the job
+//		if (calculations.isEmpty()) {
+//			throw new NoMoreWorkException();
+//		}
+//
+//		// Protect the datastructure by using semaphore
+//		try {
+//			calculationsSemaphore.acquire(1);
+//		} catch (InterruptedException e) {
+//			System.err.println("Probleme de semaphore.");
+//		}
+//
+//		String[] calculous = new String[3];
+//		int compteur = 0;
+//
+//		// Store the calculous information into an array
+//		Iterator<String> i = calculations.iterator();
+//		while (i.hasNext()) {
+//
+//			// Get the calculous from the calculations datastructure
+//			calculous[compteur] = i.next();
+//			// Remove it from the calculations datastructure
+//			i.remove();
+//
+//			// Set the apropriate number of minimum operations to do
+//			if (compteur != MINIMUM_NUMBER_OF_OPERATIONS) {
+//				compteur++;
+//			} else {
+//				break;
+//			}
+//		}
+//
+//		// Release the token from the semaphore
+//		calculationsSemaphore.release(1);
+//
+//		return calculous;
+//	}
 
-		// If the data structure is empty we don't need to do the job
-		if (calculations.isEmpty()) {
-			throw new NoMoreWorkException();
-		}
+//	public void addCalculousToVerify(CalculousServerInterface stub,
+//			String[] calculous, int result) {
+//		toVerifyCalculations.add(new Task(stub, calculous));
+//	}
 
-		// Protect the datastructure by using semaphore
-		try {
-			calculationsSemaphore.acquire(1);
-		} catch (InterruptedException e) {
-			System.err.println("Probleme de semaphore.");
-		}
+//	public void addCalculous(String[] calculous) {
+//		try {
+//			toVerifyCalculationsSemaphore.acquire(1);
+//		} catch (InterruptedException e) {
+//			// TODO : gerer
+//			e.printStackTrace();
+//		}
+//
+//		for (int i = 0; i < calculous.length; i++) {
+//			calculations.add(calculous[i]);
+//		}
+//
+//		toVerifyCalculationsSemaphore.release(1);
+//	}
 
-		String[] calculous = new String[3];
-		int compteur = 0;
+//	public void updateCapacity(CalculousServerInterface serverStub, int value) {
+//		// recuperation de l'instance information relative au bon stub
+//		CalculousServerInformation csi = serverInformations.get(serverStub);
+//		csi.setCapacity(csi.getCapacity() + value);
+//	}
 
-		// Store the calculous information into an array
-		Iterator<String> i = calculations.iterator();
-		while (i.hasNext()) {
+//	public void updateOverloadedSituation(CalculousServerInterface serverStub,
+//			boolean b) {
+//		// recuperation de l'instance information relative au bon stub
+//		CalculousServerInformation csi = serverInformations.get(serverStub);
+//		csi.setPreviousCalculHasBeenOverloaded(b);
+//	}
 
-			// Get the calculous from the calculations datastructure
-			calculous[compteur] = i.next();
-			// Remove it from the calculations datastructure
-			i.remove();
-
-			// Set the apropriate number of minimum operations to do
-			if (compteur != MINIMUM_NUMBER_OF_OPERATIONS) {
-				compteur++;
-			} else {
-				break;
-			}
-		}
-
-		// Release the token from the semaphore
-		calculationsSemaphore.release(1);
-
-		return calculous;
-	}
-
-	public void addCalculousToVerify(CalculousServerInterface stub,
-			String[] calculous, int result) {
-		toVerifyCalculations.add(new Task(stub, calculous));
-	}
-
-	public void addCalculous(String[] calculous) {
-		try {
-			toVerifyCalculationsSemaphore.acquire(1);
-		} catch (InterruptedException e) {
-			// TODO : gerer
-			e.printStackTrace();
-		}
-
-		for (int i = 0; i < calculous.length; i++) {
-			calculations.add(calculous[i]);
-		}
-
-		toVerifyCalculationsSemaphore.release(1);
-	}
-
-	public void updateCapacity(CalculousServerInterface serverStub, int value) {
-		// recuperation de l'instance information relative au bon stub
-		CalculousServerInformation csi = serverInformations.get(serverStub);
-		csi.setCapacity(csi.getCapacity() + value);
-	}
-
-	public void updateOverloadedSituation(CalculousServerInterface serverStub,
-			boolean b) {
-		// recuperation de l'instance information relative au bon stub
-		CalculousServerInformation csi = serverInformations.get(serverStub);
-		csi.setPreviousCalculHasBeenOverloaded(b);
-	}
-
-	public void removeTaskToVerify(Task task) {
-		toVerifyCalculations.remove(task);
-	}
+//	public void removeTaskToVerify(Task task) {
+//		toVerifyCalculations.remove(task);
+//	}
 
 	public boolean isSafeMode() {
 		return this.safeMode;
@@ -434,5 +435,9 @@ private ArrayList<CalculousServerInterface> CalculousServeurs;
         
         public boolean threadsShouldContinue(){
             return !threadsShouldEnd;
+        }
+        
+        public void stopTheThreads(){
+                threadsShouldEnd = false;
         }
 }
