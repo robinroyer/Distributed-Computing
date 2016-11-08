@@ -1,96 +1,42 @@
 package ca.polymtl.inf4410.tp2.server;
 
 import java.rmi.RemoteException;
-
 import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
 import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.concurrent.Semaphore;
 
-public class UnsafeRepartitorThread extends Thread {
 
-	private Repartitor repartitor;
+public class UnsafeRepartitorThread extends SafeRepartitorThread {
 
-	private String calculous[];
+       
+        // WE SHOULD ADD UNSAFE LOGIC HERE
 
-	private CalculousServerInterface serverStub;
-
-	public UnsafeRepartitorThread(Repartitor repartitor, CalculousServerInterface stub) {
-		this.repartitor = repartitor;
-		this.serverStub = stub;
-	}
+        UnsafeRepartitorThread(Repartitor repart, CalculousServerInterface server, ArrayList<String> calculations, Semaphore calculationsSemaphore, int[] globalResult, Semaphore globalResultLock) {
+                super(repart, server, calculations, calculationsSemaphore, globalResult, globalResultLock);
+        }
 
 	@Override
 	public void run() {
-
-		Task taskToVerify;
-		while (!repartitor.getThreadsShouldEnd()){
-                        taskToVerify = null;
-                                
-			if (!repartitor.isSafeMode()) {
-				// On recupere la liste des calculs a verifier
-				try {
-					//System.out.println("Verification des calculs a faire ...");
-					taskToVerify = repartitor.getTasksToVerify(serverStub);
-				} catch (NoMoreWorkToVerifyException nmwtve) {
-					System.out.println("Pas de calculs a verifier pour moi ...");
-                                        // => c'est normal de ne plus avoir de calculs 
-				}
-
-				// On procede a la verification
-				proceedToVerification(taskToVerify);
-			}else{
-                            //System.out.println("Verification des calculs a faire ...");
+                int res = 0;
+                int operationNumber = 0;
+		while (repartitor.threadsShouldContinue()){                                			
+                        try {
+                                operationNumber = threadedPickingCalculous();
+                                res = calculate(serverStub, calculousOwnedByThread);
+                                threadedAddingResult(res, operationNumber);
+                                handleUnderload();
+                        }
+                        catch(NoMoreWorkException | InterruptedException | RemoteException e){}
+                        catch (OverloadedServerException ex) {
                             try {
-                                    calculous = repartitor.getSomeCalculous();
-                                    proceedToCalculous();
-                            } catch (NoMoreWorkException nmwe) {
-                                    System.out.println("Plus de calculs a faire ...");
-                            }
+                                pushBackThreadCalculousToCalculous();
+                            } catch (InterruptedException ex1) {}
+                            handleOverload();
                         }
 		}
 	}
-
-	private void proceedToVerification(Task task) {
-		if (task != null){
-			int result = -1;
-			try {
-				result = calculate(serverStub, task.getCalculous());
-			} catch (RemoteException | OverloadedServerException e) {
-				e.printStackTrace();
-			}
-			
-			if(result == task.getResulttoVerify()) {
-				repartitor.removeTaskToVerify(task);
-				repartitor.storeResult(result);
-			}		
-		}
-	}
-
-	private void proceedToCalculous() {
-		int result = -1;
-		try {
-			result = calculate(serverStub, calculous);
-		} catch (RemoteException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (OverloadedServerException e) {
-			// If the server is overloaded, send back the calculous
-			repartitor.addCalculous(calculous);
-			repartitor.updateCapacity(serverStub, -1);
-			repartitor.updateOverloadedSituation(serverStub, true);
-
-			e.printStackTrace();
-		}
-
-		if(repartitor.isSafeMode()) {
-			repartitor.addCalculousToVerify(serverStub, calculous, result);
-		} else {
-			repartitor.storeResult(result);
-		}
-	}
-
-	public int calculate(CalculousServerInterface server, String operations[])
-			throws RemoteException, OverloadedServerException {
-		return server.calculate(operations);
-	}
-
+        
+                     
 }

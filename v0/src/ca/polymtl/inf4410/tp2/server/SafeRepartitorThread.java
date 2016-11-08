@@ -13,54 +13,54 @@ public class SafeRepartitorThread extends Thread {
         /**
          * The default capacity of server
          */
-        private static final int DEFAULT_CAPACITY = 3;
+        protected static final int DEFAULT_CAPACITY = 3;
         
         /**
          * Strub server
          */
-	private CalculousServerInterface serverStub; 
+	protected CalculousServerInterface serverStub; 
         
         /**
          * Ref to the repartitor
          */
-        private Repartitor repartitor;
+        protected Repartitor repartitor;
 
         
         /**         
          * String list of unit operation
          */
-	private ArrayList<String> calculous;
+	protected ArrayList<String> calculous;
         
         /**
          * calculous semaphore         
          */
-        private Semaphore calculousLock;
+        protected Semaphore calculousLock;
              
         /**
          * Array of length 1 containing result
          */        
-        private int[] result;
+        protected int[] result;
         
         /**
          * Lock to protect global result
          */
-        private Semaphore resultLock;
+        protected Semaphore resultLock;
         
         /**
          * Array of calculous owned by this thread
          */
-        private String[] calculousOwnedByThread;
+        protected String[] calculousOwnedByThread;
         
         
         /**
          * What should be the next capacity
          */
-        private int nextCapacity;
+        protected int nextCapacity;
         
         /**
          * Boolean : true until the first overload
          */
-        private boolean shouldIncreaseLoad;
+        protected boolean shouldIncreaseLoad;
         
 
         SafeRepartitorThread(Repartitor repart, CalculousServerInterface server, ArrayList<String> calculations, Semaphore calculationsSemaphore, int[] globalResult, Semaphore globalResultLock) {
@@ -100,12 +100,12 @@ public class SafeRepartitorThread extends Thread {
 	}
 
 
-	private int calculate(CalculousServerInterface server, String operations[])
+	protected int calculate(CalculousServerInterface server, String operations[])
 			throws RemoteException, OverloadedServerException {
 		return server.calculate(operations);
 	}
         
-        private int threadedPickingCalculous() throws NoMoreWorkException, InterruptedException{        
+        protected int threadedPickingCalculous() throws NoMoreWorkException, InterruptedException{        
 		if (calculous.isEmpty())
 			throw new NoMoreWorkException();	
                 
@@ -128,24 +128,24 @@ public class SafeRepartitorThread extends Thread {
                 return calculousNumber;
         }
                     
-        private void handleOverload(){
+        protected void handleOverload(){
                 shouldIncreaseLoad = false;
                 nextCapacity-- ;            
         }
         
-        private void handleUnderload(){
+        protected void handleUnderload(){
                 if(shouldIncreaseLoad)
                         nextCapacity++;                
         }
         
-        private void threadedAddingResult(int toAdd, int operationNumber) throws InterruptedException{
+        protected void threadedAddingResult(int toAdd, int operationNumber) throws InterruptedException{
                 resultLock.acquire();
                 result[0] += toAdd % 4000;
                 result[1]+= operationNumber;
                 resultLock.release();            
         }
         
-        private void pushBackThreadCalculousToCalculous() throws InterruptedException{	
+        protected void pushBackThreadCalculousToCalculous() throws InterruptedException{	
                 calculousLock.acquire();
                 for (String calc : calculousOwnedByThread) {
                         if(!calc.isEmpty()){
