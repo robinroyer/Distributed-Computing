@@ -136,8 +136,11 @@ public class Repartitor {
                 
                 threads = new ArrayList<>();
 
-		globalResult = new int[0];
+		globalResult = new int[2];
                 globalResult[0] = 0;
+                globalResult[1] = 0;
+                globalResultLock = new Semaphore(1);
+
 
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
@@ -151,10 +154,11 @@ public class Repartitor {
          * @throws java.lang.InterruptedException
 	 */
 	public static void main(String[] args) throws InterruptedException {
+              
 
                 // checking safe mode
 		boolean isSafe = false;
-		if (args.length > 1 && args[0].equals(SAFE_ARGUMENT)) {
+		if (args.length >= 1 && args[0].equals(SAFE_ARGUMENT)) {
 			isSafe = true;
 			System.out.println("Safe mode detecte.");
 		} else {
@@ -277,8 +281,11 @@ public class Repartitor {
                     }                    
                 }
                 
+                System.out.println("Lancement de la thread de synchronisation ...");
                 Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber, safeMode);
                         
+                
+                System.out.println("waiting for threads to finish");
                 // THREADS SYNCHRONISATION
                 coordinationThread.join();
                 for (Thread thread : threads) {
@@ -311,124 +318,6 @@ public class Repartitor {
 		br.close();
                 operationNumber = calculations.size();
 	}
-
-//	public Task getTasksToVerify(CalculousServerInterface stub)
-//			throws NoMoreWorkToVerifyException {
-//
-//		// If the map is empty we don't need to do the job
-//		if (toVerifyCalculations.isEmpty()) {
-//			throw new NoMoreWorkToVerifyException();
-//		}
-//
-//		// Protect the datastructure by using a semaphore
-//		try {
-//			toVerifyCalculationsSemaphore.acquire(1);
-//		} catch (InterruptedException e) {
-//			System.err.println("Probleme de semaphore.");
-//		}
-//
-//		Task taskToVerify = null;
-//		for (Task task : toVerifyCalculations) {
-//
-//			if (!stub.equals(task.getAuthor())) {
-//				taskToVerify = task;
-//			} else {
-//				continue;
-//			}
-//		}
-//
-//		// Case all calculous to verify have been done by the available server
-//		if (taskToVerify.equals(null)) {
-//			throw new NoMoreWorkToVerifyException();
-//		}
-//
-//		// Release the token to the semaphore
-//		toVerifyCalculationsSemaphore.release(1);
-//
-//		return taskToVerify;
-//	}
-
-	/**
-	 * Get some calculous from the calculous datastructure
-	 * 
-	 * @return a minimum number of calculous to do
-	 */
-//	public String[] getSomeCalculous() throws NoMoreWorkException {
-//
-//		// If the data structure is empty we don't need to do the job
-//		if (calculations.isEmpty()) {
-//			throw new NoMoreWorkException();
-//		}
-//
-//		// Protect the datastructure by using semaphore
-//		try {
-//			calculationsSemaphore.acquire(1);
-//		} catch (InterruptedException e) {
-//			System.err.println("Probleme de semaphore.");
-//		}
-//
-//		String[] calculous = new String[3];
-//		int compteur = 0;
-//
-//		// Store the calculous information into an array
-//		Iterator<String> i = calculations.iterator();
-//		while (i.hasNext()) {
-//
-//			// Get the calculous from the calculations datastructure
-//			calculous[compteur] = i.next();
-//			// Remove it from the calculations datastructure
-//			i.remove();
-//
-//			// Set the apropriate number of minimum operations to do
-//			if (compteur != MINIMUM_NUMBER_OF_OPERATIONS) {
-//				compteur++;
-//			} else {
-//				break;
-//			}
-//		}
-//
-//		// Release the token from the semaphore
-//		calculationsSemaphore.release(1);
-//
-//		return calculous;
-//	}
-
-//	public void addCalculousToVerify(CalculousServerInterface stub,
-//			String[] calculous, int result) {
-//		toVerifyCalculations.add(new Task(stub, calculous));
-//	}
-
-//	public void addCalculous(String[] calculous) {
-//		try {
-//			toVerifyCalculationsSemaphore.acquire(1);
-//		} catch (InterruptedException e) {
-//			// TODO : gerer
-//			e.printStackTrace();
-//		}
-//
-//		for (int i = 0; i < calculous.length; i++) {
-//			calculations.add(calculous[i]);
-//		}
-//
-//		toVerifyCalculationsSemaphore.release(1);
-//	}
-
-//	public void updateCapacity(CalculousServerInterface serverStub, int value) {
-//		// recuperation de l'instance information relative au bon stub
-//		CalculousServerInformation csi = serverInformations.get(serverStub);
-//		csi.setCapacity(csi.getCapacity() + value);
-//	}
-
-//	public void updateOverloadedSituation(CalculousServerInterface serverStub,
-//			boolean b) {
-//		// recuperation de l'instance information relative au bon stub
-//		CalculousServerInformation csi = serverInformations.get(serverStub);
-//		csi.setPreviousCalculHasBeenOverloaded(b);
-//	}
-
-//	public void removeTaskToVerify(Task task) {
-//		toVerifyCalculations.remove(task);
-//	}
 
 	public boolean isSafeMode() {
 		return this.safeMode;

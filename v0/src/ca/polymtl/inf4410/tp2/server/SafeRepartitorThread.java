@@ -106,28 +106,34 @@ public class SafeRepartitorThread extends Thread {
 
 	protected int calculate(CalculousServerInterface server, String operations[])
 			throws RemoteException, OverloadedServerException {
+                System.out.println("Sending operations =>");
+                for (String operation : operations) {
+                        System.out.println(operation);
+                }
 		return server.calculate(operations);
 	}
         
         protected int threadedPickingCalculous() throws NoMoreWorkException, InterruptedException{        
 		if (calculous.isEmpty())
-			throw new NoMoreWorkException();	
-                
-                calculousOwnedByThread = new String[nextCapacity];
+			throw new NoMoreWorkException();	                               
                 
                 // local var and iterator
                 int calculousNumber = 0;
-                Iterator<String> i = calculous.iterator();
+                
+                ArrayList<String> temp = new ArrayList<>();
 
 		// Protect the datastructure by using semaphore  /!\ CRITICAL ZONE                
                 calculousLock.acquire();
+                Iterator<String> i = calculous.iterator();
 		while (i.hasNext() && calculousNumber < nextCapacity) {
-                        String unitCalculous = i.next();
-			calculousOwnedByThread[calculousNumber] = unitCalculous;                        
-			calculous.remove(unitCalculous);
+                        temp.add(i.next());
+                        i.remove();
                         calculousNumber++;
 		}
                 calculousLock.release();
+                
+                calculousOwnedByThread = new String[temp.size()];
+                calculousOwnedByThread = temp.toArray(calculousOwnedByThread); 
                 
                 return calculousNumber;
         }
