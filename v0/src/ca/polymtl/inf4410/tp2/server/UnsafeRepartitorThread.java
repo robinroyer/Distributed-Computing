@@ -100,6 +100,7 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                                 }
                                 taskToCheck = null;
                         }catch(Exception e){}
+                        calculousOwnedByThread = null;
 		}
 	}
         
@@ -177,7 +178,7 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                         taskToCheck.addVerificationResult(actualResult, calculousOwnedByThread, calculousOwnedByThread.length);
                         handleUnderload();
                 } catch (OverloadedServerException e) {
-                        // rendre les calculous to thread
+                        t.pushBackCalculousToTask(calculousOwnedByThread);
                         handleOverload();
                 }                
         }                
