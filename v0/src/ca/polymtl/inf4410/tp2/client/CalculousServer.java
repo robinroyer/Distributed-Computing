@@ -12,7 +12,7 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Random;
 
-import ca.polymtl.inf4410.tp2.shared.CalculServerInterface;
+import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
 import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 
 /**
@@ -20,7 +20,7 @@ import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
  * 
  * @author robinroyer
  */
-public class CalculServer implements CalculServerInterface {
+public class CalculousServer implements CalculousServerInterface {
 
 	/**
 	 * Name of the first operation sent to CalculServer
@@ -41,6 +41,9 @@ public class CalculServer implements CalculServerInterface {
 	 * Percentage of trusted return message
 	 */
 	private int confidence;
+	
+	private String ip;
+	private int port;
 
 	/**
 	 * Main to run the server.
@@ -49,22 +52,22 @@ public class CalculServer implements CalculServerInterface {
 	 */
 	public static void main(String[] args) {
 		// TODO: add args to constructor
-		CalculServer server = new CalculServer(args);
-		server.run(Integer.parseInt(args[0]));
+		CalculousServer server = new CalculousServer(args[0], Integer.parseInt(args[1]));
+		server.run();
 	}
 
 	/**
 	 * Main method to run the server.
 	 */
-	private void run(int port) {
+	private void run() {
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
 
 		try {
-			CalculServerInterface stub = (CalculServerInterface) UnicastRemoteObject.exportObject(this, 0);
-			Registry registry = LocateRegistry.getRegistry();
-			registry.rebind("server" + port, stub);
+			CalculousServerInterface stub = (CalculousServerInterface) UnicastRemoteObject.exportObject(this, 0);
+			Registry registry = LocateRegistry.getRegistry(this.getPort());
+			registry.rebind(this.getIp(), stub);
 			System.out.println("CalculServer ready.");
 		} catch (ConnectException e) {
 			System.err.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lance ?");
@@ -82,20 +85,11 @@ public class CalculServer implements CalculServerInterface {
 	 *            Args where we should fin
 	 */
 
-	public CalculServer(String[] args) {
-		this(0, 3);
-		// TODO: MODIFY HERE TO GET ARGS
-	}
-
-	/**
-	 * Constructor with confidence and capacity
-	 * 
-	 * @param confidence
-	 * @param capacity
-	 */
-	private CalculServer(int confidence, int capacity) {
-		this.confidence = confidence;
-		this.capacity = capacity;
+	public CalculousServer(String ip, int port) {
+		this.ip = ip;
+		this.port = port;
+		this.confidence = 0;
+		this.capacity = 3;
 	}
 
 	@Override
@@ -166,6 +160,34 @@ public class CalculServer implements CalculServerInterface {
 	 */
 	private int proceedPellAndModulo(String numberAsString) {
 		return Operations.pell(Integer.parseInt(numberAsString)) % 4000;
+	}
+	
+	/**
+	 * @return the ip
+	 */
+	public String getIp() {
+		return ip;
+	}
+
+	/**
+	 * @param ip the ip to set
+	 */
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	/**
+	 * @return the port
+	 */
+	public int getPort() {
+		return port;
+	}
+
+	/**
+	 * @param port the port to set
+	 */
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 }
