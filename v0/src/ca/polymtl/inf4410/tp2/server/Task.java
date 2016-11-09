@@ -2,6 +2,7 @@ package ca.polymtl.inf4410.tp2.server;
 
 import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Task {
 
@@ -10,28 +11,27 @@ public class Task {
         public ArrayList<String> calculousChecked;  
         
 	private final int operationNumberToCheck;
-        private int operationNumberChecked;
-
-        
-        
+        private int operationNumberChecked;    
         
 	public CalculousServerInterface firstServer;	
         public CalculousServerInterface secondServer;
 
 	private final int firstResult;
         private int secondResult;
-
         
-        
-	
+        /**
+         * 
+         * @param server
+         * @param calculous
+         * @param result
+         * @param operationNumber 
+         */
 	public Task(CalculousServerInterface server, String[] calculous, int result, int operationNumber) {
                 // init the lists
                 calculousList = new ArrayList<>();                
-                for (String calc : calculous) {
-                        calculousList.add(calc);
-                }                
-                calculousToCheck = new ArrayList<String>(calculousList);
-                calculousChecked = new ArrayList<String>();
+                calculousList.addAll(Arrays.asList(calculous));                
+                calculousToCheck = new ArrayList<>(calculousList);
+                calculousChecked = new ArrayList<>();
                 
 		this.firstServer = server;
                 this.secondServer = null;
@@ -43,25 +43,78 @@ public class Task {
                 this.operationNumberChecked = 0;                                              
 	}
 	        
-        
+        /**
+         * 
+         * @param result
+         * @param list
+         * @param numberOfOperations 
+         */
         public void addVerificationResult(int result, String[] list, int numberOfOperations){
-            secondResult += result;
-            for (String calc : list) {
-                    calculousChecked.add(calc);
-            }
-            operationNumberChecked += numberOfOperations;
+                secondResult += result;
+                calculousChecked.addAll(Arrays.asList(list));
+                operationNumberChecked += numberOfOperations;
         }
         
-        public boolean shouldBeChecked(){ return secondServer == null; }       
-	       
-        public boolean isTaskCorrect(int secondResult){ return secondResult == firstResult; }
+        /**
+         * 
+         * @return 
+         */
+        public boolean shouldBeChecked(){ return secondServer == null; } 
         
+        /**
+         * 
+         * @return 
+         */
+        public int getSecondResult(){ return secondResult; }
+        
+        /**
+         * 
+         * @return 
+         */
+        public int getInitialOperationNumber(){ return operationNumberToCheck; }
+	 
+        /**
+         * 
+         * @return 
+         */
+        public boolean isTaskCorrect(){ return secondResult == firstResult; }
+        
+        /**
+         * 
+         * @return 
+         */
         public boolean isTaskVerified(){
-            return operationNumberChecked == operationNumberToCheck && calculousToCheck.isEmpty();
+                return operationNumberChecked == operationNumberToCheck && calculousToCheck.isEmpty();
         }
         
+        /**
+         * 
+         * @param server 
+         */
         public void attributeVerificationToServer(CalculousServerInterface server){
-            secondServer = server;
+                secondServer = server;
         }
+
+        /**
+         * 
+         * @param nextCapacity
+         * @return 
+         */
+        public String[] getCalculous(int nextCapacity) {            
+                ArrayList<String> temp = new ArrayList<>();              
+                for (int i = 0; i < nextCapacity && i < calculousToCheck.size(); i++) {                   
+                    temp.add(calculousToCheck.remove(i));                
+                }
+                return (String[])temp.toArray();
+        }
+        
+        /**
+         * 
+         * @param calcs 
+         */
+        public void pushBackCalculousToTask(String [] calcs) {	
+            calculousToCheck.addAll(Arrays.asList(calcs));
+        }     
+        
         
 }

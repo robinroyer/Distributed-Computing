@@ -24,7 +24,6 @@ public class SafeRepartitorThread extends Thread {
          * Ref to the repartitor
          */
         protected Repartitor repartitor;
-
         
         /**         
          * String list of unit operation
@@ -62,6 +61,10 @@ public class SafeRepartitorThread extends Thread {
          */
         protected boolean shouldIncreaseLoad;
         
+        /**
+         * 
+         */
+        protected int actualResult;
 
         SafeRepartitorThread(Repartitor repart, CalculousServerInterface server, ArrayList<String> calculations, Semaphore calculationsSemaphore, int[] globalResult, Semaphore globalResultLock) {
                 // stub and repartitor ref
@@ -80,13 +83,13 @@ public class SafeRepartitorThread extends Thread {
 
 	@Override
 	public void run() {
-                int res = 0;
+                actualResult = 0;
                 int operationNumber = 0;
 		while (repartitor.threadsShouldContinue()){                                			
                         try {
                                 operationNumber = threadedPickingCalculous();
-                                res = calculate(serverStub, calculousOwnedByThread);
-                                threadedAddingResult(res, operationNumber);
+                                actualResult = calculate(serverStub, calculousOwnedByThread);
+                                threadedAddingResult(actualResult, operationNumber);
                                 handleUnderload();
                         }
                         catch(NoMoreWorkException | InterruptedException | RemoteException e){}
@@ -96,6 +99,7 @@ public class SafeRepartitorThread extends Thread {
                             } catch (InterruptedException ex1) {}
                             handleOverload();
                         }
+                        calculousOwnedByThread = null;
 		}
 	}
 
