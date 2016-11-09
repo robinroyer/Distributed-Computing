@@ -6,8 +6,7 @@ import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 
 public class UnsafeRepartitorThread extends SafeRepartitorThread {
@@ -80,11 +79,13 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                         calculousOwnedByThread = null;
                         
                         // picking a task to verify
-                        try{
-                                taskToCheck = threadedPickingTaskToVerify();                
+                        try{                                
+                                taskToCheck = threadedPickingTaskToVerify();                                 
                                 if(taskToCheck != null){
+
                                         while(!taskToCheck.isTaskVerified()){
-                                            
+                                            //System.out.println( taskToCheck);
+
                                             try {
                                                 proceedTaskVerification(taskToCheck);
                                                 handleUnderload();
@@ -98,6 +99,7 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                                 if(taskToCheck.isTaskCorrect()){
                                     threadedAddingResult(taskToCheck.getSecondResult(), taskToCheck.getInitialOperationNumber());
                                 }else{
+                                    System.out.println(taskToCheck);
                                     threadedInvalidateTask(taskToCheck);
                                 }
                                 taskToCheck = null;
@@ -161,8 +163,9 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
          * @param t
          * @throws RemoteException 
          */
-        private void proceedTaskVerification(Task t) throws RemoteException{
+        private void proceedTaskVerification(Task t) throws RemoteException{                
                 calculousOwnedByThread = t.getCalculous(nextCapacity);
+                actualResult = 0;
                 try {
                         actualResult = calculate(serverStub, calculousOwnedByThread);
                         taskToCheck.addVerificationResult(actualResult, calculousOwnedByThread, calculousOwnedByThread.length);

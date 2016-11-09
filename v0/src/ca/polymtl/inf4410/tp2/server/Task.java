@@ -51,6 +51,7 @@ public class Task {
          */
         public void addVerificationResult(int result, String[] list, int numberOfOperations){
                 secondResult += result;
+                secondResult %= 4000;
                 calculousChecked.addAll(Arrays.asList(list));
                 operationNumberChecked += numberOfOperations;
         }
@@ -104,10 +105,12 @@ public class Task {
          */
         public String[] getCalculous(int nextCapacity) {            
                 ArrayList<String> temp = new ArrayList<>();              
-                for (int i = 0; i < nextCapacity && i < calculousToCheck.size(); i++) {                   
-                    temp.add(calculousToCheck.remove(i));                
+                for (int i = 0; i < nextCapacity && i < calculousToCheck.size(); i++) {  
+                    temp.add(calculousToCheck.remove(i));                     
                 }
-                return (String[])temp.toArray();
+                String [] ret = new String[temp.size()];
+                ret = temp.toArray(ret);
+                return ret;
         }
         
         /**
@@ -117,6 +120,16 @@ public class Task {
         public void pushBackCalculousToTask(String [] calcs) {	
             calculousToCheck.addAll(Arrays.asList(calcs));
         }     
+
+        @Override
+        public String toString() {
+            return "TASK : \r\n"
+                    + "operationNumberChecked is " + operationNumberChecked + "\r\n"
+                    + "operationNumberToCheck is " + operationNumberToCheck + "\r\n"
+                    + "firstResult is " + firstResult + "\r\n"
+                    + "secondResult is " + secondResult + "\r\n";
+        }
+        
         
         
 }
