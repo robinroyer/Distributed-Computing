@@ -59,7 +59,9 @@ public class Task {
          * 
          * @return 
          */
-        public boolean shouldBeChecked(){ return secondServer == null; } 
+        public boolean shouldBeCheckedBy(CalculousServerInterface server){ 
+            return firstServer != server && secondServer == null;
+        } 
         
         /**
          * 

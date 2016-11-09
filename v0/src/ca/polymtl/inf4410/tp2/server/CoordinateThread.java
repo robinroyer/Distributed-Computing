@@ -47,21 +47,16 @@ public class CoordinateThread extends Thread {
 
 	@Override
 	public void run() {
-                if (isSafe) {
-                        ThreadedSafeCoordination();
-                }
-                else{
-                        ThreadedUnsafeCoordination();
-                }   		
+                ThreadedCoordination();  		
 	}
         
         
         /**
          * 
          */
-        private void ThreadedSafeCoordination(){
+        private void ThreadedCoordination(){
             while (repartitor.threadsShouldContinue()){                                			
-                    try {
+                    try {                        
                         resulLock.acquire();
                         if(result[1] == operationNumber){
                                 repartitor.stopTheThreads();
@@ -70,29 +65,8 @@ public class CoordinateThread extends Thread {
                         // check for all operations done
                         sleep(CHECKING_PERIOD);
                     } catch (InterruptedException ex) {
-                        Logger.getLogger(CoordinateThread.class.getName()).log(Level.SEVERE, null, ex);
+                        // todo
                     }
-		}                
-        }
-        
-        
-        /**
-         * TODO:implement
-         */
-        private void ThreadedUnsafeCoordination(){
-            while (repartitor.threadsShouldContinue()){                                			
-//                    try {
-//                        resulLock.acquire();
-//                        if(result[1] == operationNumber){
-//                                repartitor.stopTheThreads();
-//                        }
-//                        resulLock.release();
-//                        // check for all operations done
-//                        sleep(CHECKING_PERIOD);
-//                    } catch (InterruptedException ex) {
-//                        Logger.getLogger(CoordinateThread.class.getName()).log(Level.SEVERE, null, ex);
-//                    }
-		}                
-        }
-
+		}   
+        }               
 }

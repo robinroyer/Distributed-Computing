@@ -6,6 +6,8 @@ import ca.polymtl.inf4410.tp2.shared.OverloadedServerException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class UnsafeRepartitorThread extends SafeRepartitorThread {
@@ -79,7 +81,7 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                         
                         // picking a task to verify
                         try{
-                                taskToCheck = threadedPickingTaskToVerify();
+                                taskToCheck = threadedPickingTaskToVerify();                
                                 if(taskToCheck != null){
                                         while(!taskToCheck.isTaskVerified()){
                                             
@@ -94,7 +96,7 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                                 
                                 // verification is over
                                 if(taskToCheck.isTaskCorrect()){
-                                    threadedAddingTaskToResult(taskToCheck);
+                                    threadedAddingResult(taskToCheck.getSecondResult(), taskToCheck.getInitialOperationNumber());
                                 }else{
                                     threadedInvalidateTask(taskToCheck);
                                 }
@@ -128,27 +130,15 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                 // CRITICAL ZONE                
                 tasksLock.acquire();
                 for (Task task : tasks) {
-                        if (task.shouldBeChecked()) {
+                        if (task.shouldBeCheckedBy(this.serverStub)) {
                                 pivot = task;
                                 pivot.attributeVerificationToServer(this.serverStub);
+                                break;
                         }
                 }
                 tasksLock.release();
                 return pivot;
         }           
-        
-        /**
-         * 
-         * @param task
-         * @throws InterruptedException 
-         */
-        private void threadedAddingTaskToResult(Task task) throws InterruptedException{
-                // CRITICAL ZONE                
-                resultLock.acquire();
-                result[0] += task.getSecondResult() % 4000;
-                result[1]+= task.getInitialOperationNumber();
-                resultLock.release();            
-        }
          
         /**
          * 

@@ -13,8 +13,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.concurrent.Semaphore;
 
 import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
@@ -65,11 +63,6 @@ public class Repartitor {
 	 * ArrayList to store the calculations to verify
 	 */
 	private ArrayList<Task> toVerifyCalculations;
-
-	/**
-	 * Hashmap to match a server with its information
-	 */
-	private HashMap<CalculousServerInterface, CalculousServerInformation> serverInformations;
 
 	/**
 	 * Semaphore to provide access to the calculations to verify structure
@@ -131,7 +124,6 @@ public class Repartitor {
 		toVerifyCalculationsSemaphore = new Semaphore(SEM_TVC_NUMBER_OF_TOKEN);
 		toVerifyCalculations = new ArrayList<>();
 
-		serverInformations = new HashMap<>();
 		CalculousServeurs = new ArrayList<>();
                 
                 threads = new ArrayList<>();
@@ -218,9 +210,7 @@ public class Repartitor {
 				String[] array = line.split(" ");
 				CalculousServerInterface csi = loadServerStub(array[0],
 						Integer.parseInt(array[1]));
-				CalculousServeurs.add(csi);
-				serverInformations.put(csi, new CalculousServerInformation(
-						MINIMUM_NUMBER_OF_OPERATIONS));
+				CalculousServeurs.add(csi);				
 			}
 			br.close();
 		} catch (IOException e) { // TODO : gestion exception proprement
@@ -281,11 +271,9 @@ public class Repartitor {
                     }                    
                 }
                 
-                System.out.println("Lancement de la thread de synchronisation ...");
                 Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber, safeMode);
-                        
+                coordinationThread.start();
                 
-                System.out.println("waiting for threads to finish");
                 // THREADS SYNCHRONISATION
                 coordinationThread.join();
                 for (Thread thread : threads) {
@@ -328,6 +316,6 @@ public class Repartitor {
         }
         
         public void stopTheThreads(){
-                threadsShouldEnd = false;
+                threadsShouldEnd = true;
         }
 }

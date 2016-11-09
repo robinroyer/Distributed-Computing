@@ -59,7 +59,7 @@ public class SafeRepartitorThread extends Thread {
         /**
          * Boolean : true until the first overload
          */
-        protected boolean shouldIncreaseLoad;
+        protected boolean shouldIncreaseLoad;        
         
         /**
          * 
@@ -99,17 +99,13 @@ public class SafeRepartitorThread extends Thread {
                             } catch (InterruptedException ex1) {}
                             handleOverload();
                         }
-                        calculousOwnedByThread = null;
+                        calculousOwnedByThread = null;                        
 		}
 	}
 
 
 	protected int calculate(CalculousServerInterface server, String operations[])
 			throws RemoteException, OverloadedServerException {
-                System.out.println("Sending operations =>");
-                for (String operation : operations) {
-                        System.out.println(operation);
-                }
 		return server.calculate(operations);
 	}
         
@@ -150,7 +146,8 @@ public class SafeRepartitorThread extends Thread {
         
         protected void threadedAddingResult(int toAdd, int operationNumber) throws InterruptedException{
                 resultLock.acquire();
-                result[0] += toAdd % 4000;
+                result[0] += toAdd;
+                result[0] = result[0] % 4000;                
                 result[1]+= operationNumber;
                 resultLock.release();            
         }
