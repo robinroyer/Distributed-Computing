@@ -57,11 +57,6 @@ public class Repartitor {
 	private static final int ERROR_IO = -10;
 
 	/**
-	 * Error exit RMI code
-	 */
-	private static final int ERROR_RMI = -20;
-
-	/**
 	 * Error exit not bound code
 	 */
 	private static final int ERROR_NOT_BOUND = -30;
@@ -248,7 +243,7 @@ public class Repartitor {
 				CalculousServerInterface csi = loadServerStub(array[0], Integer.parseInt(array[1]));
 				CalculousServeurs.add(csi);
 				// Avoid empty line crash
-				if(array.length == 0) {
+				if (array.length == 0) {
 					continue;
 				}
 			}
@@ -275,13 +270,11 @@ public class Repartitor {
 			System.exit(ERROR_NOT_BOUND);
 		} catch (AccessException e) {
 			System.err.println("Erreur : " + e.getMessage());
-			System.err.println("test");
 			System.exit(ERROR_ACCESS);
 		} catch (RemoteException e) {
-			System.err.println("Erreur: " + e.getMessage());
-			System.err.println("test2");
-			System.exit(ERROR_RMI);
-		} 
+			System.err.println("Erreur: impossible de connecter la machine " + hostname + " sur le port " + port);
+			System.err.println("Verifier votre configuration un servuer a pu ne pas etre pris en consideration.");
+		}
 
 		return stub;
 	}
