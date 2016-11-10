@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.rmi.AccessException;
 import java.rmi.NotBoundException;
@@ -248,9 +247,13 @@ public class Repartitor {
 				String[] array = line.split(" ");
 				CalculousServerInterface csi = loadServerStub(array[0], Integer.parseInt(array[1]));
 				CalculousServeurs.add(csi);
+				// Avoid empty line crash
+				if(array.length == 0) {
+					continue;
+				}
 			}
 			br.close();
-		} catch (IOException e) { // TODO : gestion exception proprement
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -267,21 +270,18 @@ public class Repartitor {
 		try {
 			Registry registry = LocateRegistry.getRegistry(hostname, port);
 			stub = (CalculousServerInterface) registry.lookup(hostname);
-			try {
-				System.out.println(InetAddress.getLocalHost().getHostName());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
 		} catch (NotBoundException e) {
-			System.err.println("Erreur: Le nom  " + e.getMessage() + "  n est pas defini dans le registre.");
+			System.err.println("Erreur : Le nom  " + e.getMessage() + " n'est pas defini dans le registre.");
 			System.exit(ERROR_NOT_BOUND);
 		} catch (AccessException e) {
-			System.err.println("Erreur: " + e.getMessage());
+			System.err.println("Erreur : " + e.getMessage());
+			System.err.println("test");
 			System.exit(ERROR_ACCESS);
 		} catch (RemoteException e) {
 			System.err.println("Erreur: " + e.getMessage());
+			System.err.println("test2");
 			System.exit(ERROR_RMI);
-		}
+		} 
 
 		return stub;
 	}
