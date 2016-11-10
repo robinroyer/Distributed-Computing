@@ -99,7 +99,6 @@ public class UnsafeRepartitorThread extends SafeRepartitorThread {
                                 if(taskToCheck.isTaskCorrect()){
                                     threadedAddingResult(taskToCheck.getSecondResult(), taskToCheck.getInitialOperationNumber());
                                 }else{
-                                    System.out.println(taskToCheck);
                                     threadedInvalidateTask(taskToCheck);
                                 }
                                 taskToCheck = null;

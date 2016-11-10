@@ -102,13 +102,10 @@ public class Repartitor {
          */
         private int operationNumber;
         
-        
+        /**
+         * Array containing all the server instance
+         */
         private ArrayList<CalculousServerInterface> CalculousServeurs;
-
-	/**
-	 * The distant servers used for our project
-	 */
-//	private CalculousServerInterface distantServerStub = null;
 
 	/**
 	 * Public constructor to create a Repartiteur instance.
@@ -128,6 +125,7 @@ public class Repartitor {
                 
                 threads = new ArrayList<>();
 
+                // init result struc
 		globalResult = new int[2];
                 globalResult[0] = 0;
                 globalResult[1] = 0;
@@ -250,8 +248,16 @@ public class Repartitor {
 		return stub;
 	}
 
+        
+        /**
+         * Private method to launch one thread by server, one coordination thread
+         * and then wait the end of threads work to print the resul
+         * 
+         * @throws IOException
+         * @throws InterruptedException 
+         */
 	private void startThreadsThenJoin() throws IOException, InterruptedException {
-		if (safeMode){
+		if (!safeMode){
                     for (CalculousServerInterface server : CalculousServeurs) {
 			SafeRepartitorThread thread = 
                                 new SafeRepartitorThread( this, server, calculations,
@@ -271,7 +277,7 @@ public class Repartitor {
                     }                    
                 }
                 
-                Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber, safeMode);
+                Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber);
                 coordinationThread.start();
                 
                 // THREADS SYNCHRONISATION
@@ -307,14 +313,25 @@ public class Repartitor {
                 operationNumber = calculations.size();
 	}
 
+        /**
+         * safeMode getter
+         * @return safeMode
+         */
 	public boolean isSafeMode() {
 		return this.safeMode;
 	}
         
+        /**
+         * threadsShouldEnd getter
+         * @return the inverse of threadsShouldEnd
+         */
         public boolean threadsShouldContinue(){
             return !threadsShouldEnd;
         }
         
+        /**
+         * set threadsShouldEnd to true
+         */
         public void stopTheThreads(){
                 threadsShouldEnd = true;
         }

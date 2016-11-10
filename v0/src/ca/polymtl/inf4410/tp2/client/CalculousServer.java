@@ -51,8 +51,20 @@ public class CalculousServer implements CalculousServerInterface {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO: add args to constructor
-		CalculousServer server = new CalculousServer(args[0], Integer.parseInt(args[1]));
+            
+                CalculousServer server = null;
+                        
+                try {
+                        server = new CalculousServer(args[0],   // ip
+                            Integer.parseInt(args[1]),          // port
+                            Integer.parseInt(args[2]),          // confidence
+                            Integer.parseInt(args[3]));         // capacity
+                } catch (Exception e) {
+                        System.out.println("Parameters are missing Defult is => ./client ip port confidence capacity");
+                        System.out.println("... => Launching server with default configuration");
+                        server = new CalculousServer("127.0.0.1", 5010, 0, 3);
+                }
+
 		server.run();
 	}
 
@@ -81,15 +93,16 @@ public class CalculousServer implements CalculousServerInterface {
 	/**
 	 * Constructor from Args
 	 * 
-	 * @param args
-	 *            Args where we should fin
+         * @param ip server ip
+         * @param port server listening port
+         * @param confidence percentage of maliciousness on a scale from 0 to 100
+         * @param capacity number of operation from where the server will begin to response as overloaded
 	 */
-
-	public CalculousServer(String ip, int port) {
+	public CalculousServer(String ip, int port, int confidence, int capacity) {
 		this.ip = ip;
 		this.port = port;
-		this.confidence = 0;
-		this.capacity = 3;
+		this.confidence = confidence;
+		this.capacity = capacity;
 	}
 
 	@Override
@@ -100,9 +113,15 @@ public class CalculousServer implements CalculousServerInterface {
 					+ " operations. Cela depasse la capacite du serveur de calcul.");
 			throw new OverloadedServerException();
 		}
-
-		int result = 0;
+                
+                int result = 0;
 		String[] operation;
+                
+                if(isMalicious()){                       
+                        result =  (int) (Math.random() * 4000);
+                        System.out.println("The server is malicious, le faux resultat est : " + result);
+                        return result;
+                }		
 
 		for (int i = 0; i < operations.length; i++) {
 
@@ -123,7 +142,16 @@ public class CalculousServer implements CalculousServerInterface {
 		System.out.println("Le resultat de ces " + operations.length + " operations est : " + result);
 		return result;
 	}
-
+        
+        /**
+         * Private method to check if the server will launch a malicious response
+         * @return true is the server should be malicious
+         */
+        private boolean isMalicious(){
+                return (Math.random() * 100) < confidence;
+        }
+        
+        
 	/**
 	 * Test if the server is overloaded, in order to accept or refuse the
 	 * operations
@@ -134,10 +162,8 @@ public class CalculousServer implements CalculousServerInterface {
 	 */
 	private boolean isOverloaded(int operationNumber) {
 		// Algorythm to calculate refusingRate: T = (U-Q)/(4*Q) * 100
-		double refusingRate = (operationNumber - capacity) / (4 * capacity) * 100;
-		// Using a random generator for refusing
-		Random rand = new Random(System.currentTimeMillis());
-		return refusingRate > 100 * rand.nextDouble();
+		double refusingRate = (operationNumber - capacity) / (4 * capacity) ;
+		return refusingRate > Math.random();
 	}
 
 	/**

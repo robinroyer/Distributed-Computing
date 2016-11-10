@@ -32,17 +32,15 @@ public class CoordinateThread extends Thread {
          */
         private Semaphore resulLock;
         
-        private int operationNumber;
+        private final int operationNumber;
         
-        private boolean isSafe;
         
       
-        CoordinateThread(Repartitor repart,  int[] globalResult, Semaphore globalResultLock, int operationNum, boolean safeMode) {
+        CoordinateThread(Repartitor repart,  int[] globalResult, Semaphore globalResultLock, int operationNum) {
                 repartitor = repart;
                 result = globalResult;
                 resulLock = globalResultLock;
-                operationNumber = operationNum;
-                isSafe = safeMode;
+                operationNumber = operationNum;            
         }
 
 	@Override
