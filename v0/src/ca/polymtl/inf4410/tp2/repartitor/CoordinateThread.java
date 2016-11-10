@@ -74,7 +74,7 @@ public class CoordinateThread extends Thread {
 				// check for all operations done
 				sleep(CHECKING_PERIOD);
 			} catch (InterruptedException ex) {
-				System.err.println("Interruption de thread reçue.");
+				System.err.println("Interruption de thread recue.");
 			} finally {
 				// security : unlock the semaphore
 				resulLock.release();

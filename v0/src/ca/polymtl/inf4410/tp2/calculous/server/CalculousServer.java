@@ -63,8 +63,8 @@ public class CalculousServer implements CalculousServerInterface {
 					Integer.parseInt(args[2]), // confidence
 					Integer.parseInt(args[3])); // capacity
 		} catch (Exception e) {
-			System.out.println("Paramètres manquants : ./client ip port confidence capacity");
-			System.out.println("Lancement du serveur avec la configuration par défaut.");
+			System.out.println("Parametres manquants : ./client ip port confidence capacity");
+			System.out.println("Lancement du serveur avec la configuration par defaut.");
 			server = new CalculousServer("127.0.0.1", 5010, 0, 3);
 		}
 
@@ -162,7 +162,7 @@ public class CalculousServer implements CalculousServerInterface {
 					break;
 				default:
 					// Amelioration : make the system more robust
-					System.err.println("Cette opération n'est pas valide : " + currentOperation);
+					System.err.println("Cette operation n'est pas valide : " + currentOperation);
 					break;
 				}
 		}
