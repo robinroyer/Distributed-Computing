@@ -89,8 +89,10 @@ public class CalculousServer implements CalculousServerInterface {
 			System.err.println("Impossible de se connecter au registre RMI. Est-ce que rmiregistry est lance ?");
 			System.err.println();
 			System.err.println("Erreur: " + e.getMessage());
+			System.exit(-100);
 		} catch (Exception e) {
 			System.err.println("Erreur: " + e.getMessage());
+			System.exit(-200);
 		}
 	}
 
