@@ -187,6 +187,9 @@ public class Repartitor {
 					} catch (IOException e) {}
 					startThreadsThenJoin();					
 				}
+                                
+                                if (command.equals("exit"))
+                                    System.exit(0);
 			}
 		} catch (IOException e) {
 			System.err.println("Erreur dans la lecture du flux d'entree sortie.");
@@ -257,6 +260,8 @@ public class Repartitor {
          * @throws InterruptedException 
          */
 	private void startThreadsThenJoin() throws IOException, InterruptedException {
+            long firstTime = System.currentTimeMillis();          
+
 		if (!safeMode){
                     for (CalculousServerInterface server : CalculousServeurs) {
 			SafeRepartitorThread thread = 
@@ -282,11 +287,14 @@ public class Repartitor {
                 
                 // THREADS SYNCHRONISATION
                 coordinationThread.join();
+                long secondTime = System.currentTimeMillis();
                 for (Thread thread : threads) {
                     thread.join();
                 }
                 
                 System.out.println("Resultats des calculs => " + globalResult[0]);
+                System.out.println("Ce calcul a ete effectué en : " 
+                        + (secondTime - firstTime) + " millisecondes");
       	}
 
 	/**
