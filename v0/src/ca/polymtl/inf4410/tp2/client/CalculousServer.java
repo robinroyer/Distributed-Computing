@@ -35,14 +35,21 @@ public class CalculousServer implements CalculousServerInterface {
 	/**
 	 * Maximum capacity of the instance of CalculServer
 	 */
-	private int capacity;
+	private final int capacity;
 
 	/**
 	 * Percentage of trusted return message
 	 */
-	private int confidence;
+	private final int confidence;
 	
+        /**
+         * Server IP
+         */
 	private String ip;
+        
+        /**
+         * Rmiregistry port
+         */
 	private int port;
 
 	/**
@@ -52,7 +59,7 @@ public class CalculousServer implements CalculousServerInterface {
 	 */
 	public static void main(String[] args) {
             
-                CalculousServer server = null;
+                CalculousServer server;
                         
                 try {
                         server = new CalculousServer(args[0],   // ip
@@ -105,6 +112,14 @@ public class CalculousServer implements CalculousServerInterface {
 		this.capacity = capacity;
 	}
 
+        /**
+         * Public methode call remotely by thread to send operations to be done
+         * 
+         * @param operations Array of string containing operation
+         * @return
+         * @throws RemoteException Rmi error
+         * @throws OverloadedServerException Call when the server receive too much operation
+         */
 	@Override
 	public int calculate(String[] operations) throws RemoteException, OverloadedServerException {
 

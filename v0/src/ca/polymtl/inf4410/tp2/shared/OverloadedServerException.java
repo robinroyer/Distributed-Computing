@@ -12,8 +12,7 @@ public class OverloadedServerException extends Exception {
 	/**
 	 * Best practices for each class extenting or implenting Serializable interface.
 	 */
-	private static final long serialVersionUID = 592932191259440100L;
-	
+	private static final long serialVersionUID = 592932191259440100L;	
 
 	/**
 	 * Default constructor

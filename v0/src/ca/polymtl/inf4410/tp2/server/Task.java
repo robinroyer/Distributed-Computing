@@ -6,25 +6,59 @@ import java.util.Arrays;
 
 public class Task {
 
-	public ArrayList<String> calculousList;
-        public ArrayList<String> calculousToCheck;  
-        public ArrayList<String> calculousChecked;  
-        
-	private final int operationNumberToCheck;
-        private int operationNumberChecked;    
-        
-	public CalculousServerInterface firstServer;	
-        public CalculousServerInterface secondServer;
-
-	private final int firstResult;
-        private int secondResult;
+        /**
+         * The list of calculous represented by the task
+         */
+	private final ArrayList<String> calculousList;
         
         /**
+         * list of calculous allready checked
+         */
+        private final ArrayList<String> calculousToCheck;  
+        
+        /**
+         * list of calculous that need to be checked
+         */
+        private final ArrayList<String> calculousChecked;  
+        
+        /**
+         * The number of operation the task is representing
+         */
+	private final int operationNumberToCheck;
+        
+        /**
+         * the number of operation allready checked
+         */
+        private int operationNumberChecked;    
+        
+        /**
+         * Reference to server that had calculate the first result
+         */
+	private final CalculousServerInterface firstServer;
+        
+        /**
+         * Reference to the server that proceed the verification
+         */
+        private CalculousServerInterface secondServer;
+
+        /**
+         * The result of the task calculation
+         */
+	private final int firstResult;
+        
+        /**
+         * The result of the task verification
+         */
+        private int secondResult;
+        
+        
+        /**
+         * Task constructor
          * 
-         * @param server
-         * @param calculous
-         * @param result
-         * @param operationNumber 
+         * @param server server that had perform the first calculation
+         * @param calculous List of calculation proceed by the first server
+         * @param result Result of the first calculation by the first server
+         * @param operationNumber Number of operation proceed in the first calculation
          */
 	public Task(CalculousServerInterface server, String[] calculous, int result, int operationNumber) {
                 // init the lists
@@ -32,7 +66,7 @@ public class Task {
                 calculousList.addAll(Arrays.asList(calculous));                
                 calculousToCheck = new ArrayList<>(calculousList);
                 calculousChecked = new ArrayList<>();
-                
+                                
 		this.firstServer = server;
                 this.secondServer = null;
                 
@@ -44,10 +78,10 @@ public class Task {
 	}
 	        
         /**
-         * 
-         * @param result
-         * @param list
-         * @param numberOfOperations 
+         * Add a result and a number of operation to the task secondResult
+         * @param result actual result to add
+         * @param list list of calculous coresponding to that result
+         * @param numberOfOperations number of operation proceed
          */
         public void addVerificationResult(int result, String[] list, int numberOfOperations){
                 secondResult += result;
@@ -57,51 +91,62 @@ public class Task {
         }
         
         /**
+         * check if a server has allready perform the first calcul and if the task
+         * is allready checked
          * 
-         * @return 
+         * @param server CalculousServerInterface that we want to check 
+         * @return true if server is not the firstServer
          */
         public boolean shouldBeCheckedBy(CalculousServerInterface server){ 
             return firstServer != server && secondServer == null;
         } 
         
         /**
-         * 
-         * @return 
+         * secondResult getter
+         * @return secondResult
          */
         public int getSecondResult(){ return secondResult; }
         
         /**
-         * 
-         * @return 
+         * operationNumberToCheck getter
+         * @return operationNumberToCheck
          */
         public int getInitialOperationNumber(){ return operationNumberToCheck; }
 	 
         /**
-         * 
-         * @return 
+         * Check that no malicious result has been proceed
+         * @return True if first and second calculation give the same result
          */
         public boolean isTaskCorrect(){ return secondResult == firstResult; }
         
         /**
-         * 
-         * @return 
+         * Check that verification is over
+         * @return true if all calculation have been done
          */
         public boolean isTaskVerified(){
                 return operationNumberChecked == operationNumberToCheck && calculousToCheck.isEmpty();
         }
         
         /**
-         * 
-         * @param server 
+         * Attribute a task to a server for verification
+         * @param server the server the task is attribute to
          */
         public void attributeVerificationToServer(CalculousServerInterface server){
                 secondServer = server;
         }
+        
+        /**
+         * calculousList getter
+         * @return calculousList
+         */
+        public ArrayList<String> getCalculousList(){ return calculousList; }
 
         /**
+         * Asking the task a number of calculous that will be remove from calculousToCheck
+         * getCalculous will return less than nextCapacity if calculousToCheck is empty
          * 
-         * @param nextCapacity
-         * @return 
+         * @param nextCapacity number of operation asked
+         * @return return maximum of operation that can be send
          */
         public String[] getCalculous(int nextCapacity) {            
                 ArrayList<String> temp = new ArrayList<>();              
@@ -114,13 +159,18 @@ public class Task {
         }
         
         /**
+         * push back an array of calculous to the calculousToCheck
          * 
-         * @param calcs 
+         * @param calcs araay of calculous
          */
         public void pushBackCalculousToTask(String [] calcs) {	
             calculousToCheck.addAll(Arrays.asList(calcs));
         }     
 
+        /**
+         * Overide to string in a debug purpose
+         * @return String representing a task
+         */
         @Override
         public String toString() {
             return "TASK : \r\n"
@@ -128,8 +178,5 @@ public class Task {
                     + "operationNumberToCheck is " + operationNumberToCheck + "\r\n"
                     + "firstResult is " + firstResult + "\r\n"
                     + "secondResult is " + secondResult + "\r\n";
-        }
-        
-        
-        
+        }               
 }

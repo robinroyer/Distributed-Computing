@@ -16,7 +16,7 @@ public class SafeRepartitorThread extends Thread {
         protected static final int DEFAULT_CAPACITY = 3;
         
         /**
-         * Strub server
+         * Strub server handle by this thread
          */
 	protected CalculousServerInterface serverStub; 
         
@@ -52,7 +52,7 @@ public class SafeRepartitorThread extends Thread {
         
         
         /**
-         * What should be the next capacity
+         * What should be the server next capacity
          */
         protected int nextCapacity;
         
@@ -61,12 +61,18 @@ public class SafeRepartitorThread extends Thread {
          */
         protected boolean shouldIncreaseLoad;        
         
-        /**
-         * 
-         */
-        protected int actualResult;
 
-        SafeRepartitorThread(Repartitor repart, CalculousServerInterface server, ArrayList<String> calculations, Semaphore calculationsSemaphore, int[] globalResult, Semaphore globalResultLock) {
+        /**
+         * SafeRepartitorThread constructor
+         * 
+         * @param repart Repartitor reference
+         * @param server CalculousServerInterface server handle by the thread
+         * @param calculations shared String ArrayList of calculous
+         * @param calculationsSemaphore Semaphore protecting calculations
+         * @param globalResult Array containging [0] shared result, [1] operations allready proceed 
+         * @param globalResultLock Semaphore protecting globalResult
+         */
+        public SafeRepartitorThread(Repartitor repart, CalculousServerInterface server, ArrayList<String> calculations, Semaphore calculationsSemaphore, int[] globalResult, Semaphore globalResultLock) {
                 // stub and repartitor ref
                 repartitor = repart;
                 serverStub = server;
@@ -81,10 +87,14 @@ public class SafeRepartitorThread extends Thread {
                 shouldIncreaseLoad = true;
         }
 
+        /**
+         * loop over calculous, safely take operations and proceed them until 
+         * shared boolean threadsShouldContinue is set to true
+         */
 	@Override
 	public void run() {
-                actualResult = 0;
-                int operationNumber = 0;
+                int actualResult;
+                int operationNumber;
 		while (repartitor.threadsShouldContinue()){                                			
                         try {
                                 operationNumber = threadedPickingCalculous();
@@ -103,7 +113,16 @@ public class SafeRepartitorThread extends Thread {
 		}
 	}
 
-
+        /**
+         * Calling calculate on the Array of operation to the remote server
+         * 
+         * @param server CalculousServerInterface that will proceed the calculation
+         * @param operations array of string containing the operations
+         * @return result proceed by the server (it can be malicious)
+         * @throws RemoteException Rmi exception
+         * @throws OverloadedServerException exception thrown if we sent too
+         *         much operations to the server
+         */
 	protected int calculate(CalculousServerInterface server, String operations[])
 			throws RemoteException, OverloadedServerException {
 		return server.calculate(operations);
@@ -133,25 +152,44 @@ public class SafeRepartitorThread extends Thread {
                 
                 return calculousNumber;
         }
-                    
+            
+        /**
+         * Lower the nextCapacity & stop increasing capacity
+         */
         protected void handleOverload(){
                 shouldIncreaseLoad = false;
                 nextCapacity-- ;            
         }
         
+        /**
+         * increase nextCapacity until one overloadException
+         */
         protected void handleUnderload(){
                 if(shouldIncreaseLoad)
                         nextCapacity++;                
         }
         
+        /**
+         * Safe method to add result to globalResult in repartitor
+         * 
+         * @param toAdd result of the operation
+         * @param operationNumber number of operation proceed by the server
+         * @throws InterruptedException 
+         */
         protected void threadedAddingResult(int toAdd, int operationNumber) throws InterruptedException{
                 resultLock.acquire();
                 result[0] += toAdd;
-                result[0] = result[0] % 4000;                
-                result[1]+= operationNumber;
+                result[0] %= 4000;                
+                result[1] += operationNumber;
                 resultLock.release();            
         }
         
+        /**
+         * Safe Sending back calculous operation taken by the
+         * thread to the shared calculous list
+         * 
+         * @throws InterruptedException 
+         */
         protected void pushBackThreadCalculousToCalculous() throws InterruptedException{	
                 calculousLock.acquire();
                 for (String calc : calculousOwnedByThread) {

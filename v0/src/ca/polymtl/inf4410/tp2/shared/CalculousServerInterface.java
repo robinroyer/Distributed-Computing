@@ -11,6 +11,7 @@ import java.rmi.RemoteException;
  * 
  */
 public interface CalculousServerInterface extends Remote {
+    
 	/**
 	 * Give operations to calculServer
 	 * 
@@ -21,5 +22,5 @@ public interface CalculousServerInterface extends Remote {
 	 * @throws ca.polymtl.inf4410.tp2.shared.OverloadedServerException
 	 */
 	int calculate(String[] operations) throws RemoteException,
-			OverloadedServerException;
+                OverloadedServerException;
 }

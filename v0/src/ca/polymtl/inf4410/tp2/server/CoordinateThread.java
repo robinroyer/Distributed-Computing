@@ -1,13 +1,11 @@
 package ca.polymtl.inf4410.tp2.server;
 
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
  * This thread has one only purpose
- *          Checking if the other threads should stop to work
+ *          Checking if the other threads should stop working
  * @author robinroyer
  */
 public class CoordinateThread extends Thread {
@@ -20,23 +18,32 @@ public class CoordinateThread extends Thread {
         /**
          * Ref to the repartitor
          */
-        private Repartitor repartitor;
+        private final Repartitor repartitor;
 
         /**
          * Array of length 1 containing result
          */        
-        private int[] result;
+        private final int[] result;
         
         /**
          * Semaphore protecting lock
          */
-        private Semaphore resulLock;
+        private final Semaphore resulLock;
         
+        /**
+         * The number of operation the repartitor received
+         */
         private final int operationNumber;
         
-        
-      
-        CoordinateThread(Repartitor repart,  int[] globalResult, Semaphore globalResultLock, int operationNum) {
+        /**
+         * CoordinateThread constructor
+         * 
+         * @param repart repartitor reference
+         * @param globalResult Array ref containing the result [0] & the number of operation [1]
+         * @param globalResultLock Semaphore on globalResult 
+         * @param operationNum initial number of operation that should be calculated
+         */
+        public CoordinateThread(Repartitor repart,  int[] globalResult, Semaphore globalResultLock, int operationNum) {
                 repartitor = repart;
                 result = globalResult;
                 resulLock = globalResultLock;
@@ -46,11 +53,11 @@ public class CoordinateThread extends Thread {
 	@Override
 	public void run() {
                 ThreadedCoordination();  		
-	}
-        
+	}        
         
         /**
-         * 
+         * Checking if every operation has been validated in order to 
+         * coordinate the threads terminaison every CHECKING_PERIOD milliseconds
          */
         private void ThreadedCoordination(){
             while (repartitor.threadsShouldContinue()){                                			

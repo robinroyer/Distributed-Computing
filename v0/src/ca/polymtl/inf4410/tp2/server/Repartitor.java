@@ -263,23 +263,23 @@ public class Repartitor {
             long firstTime = System.currentTimeMillis();          
 
 		if (!safeMode){
-                    for (CalculousServerInterface server : CalculousServeurs) {
-			SafeRepartitorThread thread = 
-                                new SafeRepartitorThread( this, server, calculations,
-                                        calculationsSemaphore, globalResult, globalResultLock );
-			threads.add( thread );
-                        thread.start();
-                    }
+                        for (CalculousServerInterface server : CalculousServeurs) {
+                                SafeRepartitorThread thread = 
+                                        new SafeRepartitorThread( this, server, calculations,
+                                                calculationsSemaphore, globalResult, globalResultLock );
+                                threads.add( thread );
+                                thread.start();
+                        }
                 
                 }else{
-                    for (CalculousServerInterface server : CalculousServeurs) {
-                        
-			UnsafeRepartitorThread thread = new UnsafeRepartitorThread( this, server,
-                                calculations, calculationsSemaphore, globalResult, globalResultLock,
-                                toVerifyCalculations, toVerifyCalculationsSemaphore );                        
-			threads.add( thread );
-                        thread.start();
-                    }                    
+                        for (CalculousServerInterface server : CalculousServeurs) {
+
+                                UnsafeRepartitorThread thread = new UnsafeRepartitorThread( this, server,
+                                        calculations, calculationsSemaphore, globalResult, globalResultLock,
+                                        toVerifyCalculations, toVerifyCalculationsSemaphore );                        
+                                threads.add( thread );
+                                thread.start();
+                        }                    
                 }
                 
                 Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber);
@@ -334,7 +334,7 @@ public class Repartitor {
          * @return the inverse of threadsShouldEnd
          */
         public boolean threadsShouldContinue(){
-            return !threadsShouldEnd;
+                return !threadsShouldEnd;
         }
         
         /**
