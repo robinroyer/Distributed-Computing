@@ -1,11 +1,11 @@
-package ca.polymtl.inf4410.tp2.server;
+package ca.polymtl.inf4410.tp2.repartitor;
 
 public class NoMoreWorkException extends Exception {
 	/**
-	 * Best practices for each class extenting or implenting Serializable interface.
+	 * Best practices for each class extenting or implenting Serializable
+	 * interface.
 	 */
 	private static final long serialVersionUID = 592932191259440100L;
-	
 
 	/**
 	 * Default constructor
@@ -15,11 +15,13 @@ public class NoMoreWorkException extends Exception {
 
 	/**
 	 * Normal constructor
-         * @param message The error message
-        */
+	 * 
+	 * @param message
+	 *            The error message
+	 */
 	public NoMoreWorkException(String message) {
-		super(message);	
-	}	
+		super(message);
+	}
 
 	/**
 	 * @param cause
@@ -42,8 +44,7 @@ public class NoMoreWorkException extends Exception {
 	 * @param enableSuppression
 	 * @param writableStackTrace
 	 */
-	public NoMoreWorkException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
+	public NoMoreWorkException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 

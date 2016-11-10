@@ -8,11 +8,12 @@ package ca.polymtl.inf4410.tp2.shared;
  *
  */
 public class OverloadedServerException extends Exception {
-	
+
 	/**
-	 * Best practices for each class extenting or implenting Serializable interface.
+	 * Best practices for each class extenting or implenting Serializable
+	 * interface.
 	 */
-	private static final long serialVersionUID = 592932191259440100L;	
+	private static final long serialVersionUID = 592932191259440100L;
 
 	/**
 	 * Default constructor
@@ -22,11 +23,13 @@ public class OverloadedServerException extends Exception {
 
 	/**
 	 * Normal constructor
-         * @param message The error message
-        */
+	 * 
+	 * @param message
+	 *            The error message
+	 */
 	public OverloadedServerException(String message) {
-		super(message);	
-	}	
+		super(message);
+	}
 
 	/**
 	 * @param cause
@@ -49,8 +52,8 @@ public class OverloadedServerException extends Exception {
 	 * @param enableSuppression
 	 * @param writableStackTrace
 	 */
-	public OverloadedServerException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
+	public OverloadedServerException(String message, Throwable cause, boolean enableSuppression,
+			boolean writableStackTrace) {
 		super(message, cause, enableSuppression, writableStackTrace);
 	}
 

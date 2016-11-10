@@ -1,4 +1,4 @@
-package ca.polymtl.inf4410.tp2.server;
+package ca.polymtl.inf4410.tp2.repartitor;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -19,11 +19,39 @@ import ca.polymtl.inf4410.tp2.shared.CalculousServerInterface;
 
 public class Repartitor {
 
+	/**
+	 * Path to the calculous servers configuration
+	 */
 	private static final String PATH_CONFIG_CALCULOUS_SERVERS = "./config/servers.config";
 
+	/**
+	 * Command to compute the file
+	 */
+	private static final String CMD_COMPUTE = "compute";
+
+	/**
+	 * Command to exit the program
+	 */
+	private static final String CMD_EXIT = "exit";
+
+	/**
+	 * Number of token for the calculous semaphore
+	 */
 	private static final int SEM_C_NUMBER_OF_TOKEN = 1;
+
+	/**
+	 * Number of token for the to verify calculous semaphore
+	 */
 	private static final int SEM_TVC_NUMBER_OF_TOKEN = 1;
-        private static final String SAFE_ARGUMENT = "-S";
+
+	/**
+	 * Number of token for the result semaphore
+	 */
+	private static final int SEM_R_NUMBER_OF_TOKEN = 1;
+	/**
+	 * Argument of the command line for to enable the safe mode
+	 */
+	private static final String SAFE_ARGUMENT = "-S";
 	/**
 	 * Error exit IO code
 	 */
@@ -45,14 +73,9 @@ public class Repartitor {
 	private static final int ERROR_ACCESS = -40;
 
 	/**
-	 * Minimum number of unit operation to do by a server (q value)
-	 */
-	private static final int MINIMUM_NUMBER_OF_OPERATIONS = 2;
-
-	/**
 	 * ArrayList to store the calculations to do
 	 */
-	private ArrayList<String> calculations;	
+	private ArrayList<String> calculations;
 
 	/**
 	 * Semaphore to provide access to the calculations structure
@@ -79,59 +102,63 @@ public class Repartitor {
 	 */
 	private boolean threadsShouldEnd = false;
 
-        /**
-         * Arrayslist of our different thread
-         */
-        private ArrayList<Thread> threads;
-        
-        /**
-         * GlobalResult is an array of size 2 in order to be able to give it by
-         * ref to threads
-         * index 0 => the result
-         * index 1 => number of operation stacked in result
-         */
-        private int[] globalResult;
-        
-        /**
-         * Semaphore protecting globalresult
-         */
-        private Semaphore globalResultLock;
-        
-        /**
-         * number of operation provided to the repartitor
-         */
-        private int operationNumber;
-        
-        /**
-         * Array containing all the server instance
-         */
-        private ArrayList<CalculousServerInterface> CalculousServeurs;
+	/**
+	 * Arrayslist of our different thread
+	 */
+	private ArrayList<Thread> threads;
 
 	/**
-	 * Public constructor to create a Repartiteur instance.
+	 * GlobalResult is an array of size 2 in order to be able to give it by
+	 * reference to threads index 0 => the result index 1 => number of operation
+	 * stacked in result
+	 */
+	private int[] globalResult;
+
+	/**
+	 * Semaphore protecting globalresult
+	 */
+	private Semaphore globalResultLock;
+
+	/**
+	 * number of operation provided to the repartitor
+	 */
+	private int operationNumber;
+
+	/**
+	 * Array containing all the server instance
+	 */
+	private ArrayList<CalculousServerInterface> CalculousServeurs;
+
+	/**
+	 * Public constructor to create a Repartiteur instance
 	 * 
 	 */
 	public Repartitor(boolean isSafe) {
 
-                safeMode = isSafe;
-            
+		// Enable of not the safe mode
+		safeMode = isSafe;
+
+		// Creation of calculous data structure
 		calculationsSemaphore = new Semaphore(SEM_C_NUMBER_OF_TOKEN);
 		calculations = new ArrayList<>();
 
+		// Creation of to verify calculous data structure
 		toVerifyCalculationsSemaphore = new Semaphore(SEM_TVC_NUMBER_OF_TOKEN);
 		toVerifyCalculations = new ArrayList<>();
 
+		// Create the list of servers
 		CalculousServeurs = new ArrayList<>();
-                
-                threads = new ArrayList<>();
 
-                // init result struc
+		// Create the list of threads
+		threads = new ArrayList<>();
+
+		// Initialize the result structure
 		globalResult = new int[2];
-                globalResult[0] = 0;
-                globalResult[1] = 0;
-                globalResultLock = new Semaphore(1);
+		globalResult[0] = 0;
+		globalResult[1] = 0;
+		globalResultLock = new Semaphore(SEM_R_NUMBER_OF_TOKEN);
 
-
+		// Set the security manager
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
@@ -141,21 +168,20 @@ public class Repartitor {
 	 * Main point of the program
 	 * 
 	 * @param args
-         * @throws java.lang.InterruptedException
+	 * @throws java.lang.InterruptedException
 	 */
 	public static void main(String[] args) throws InterruptedException {
-              
 
-                // checking safe mode
+		// Checking safe mode
 		boolean isSafe = false;
 		if (args.length >= 1 && args[0].equals(SAFE_ARGUMENT)) {
 			isSafe = true;
-			System.out.println("Safe mode detecte.");
+			System.out.println("Mode \"safe\" detecte : les calculs seront tous verifies.");
 		} else {
-			System.out.println("Mode non Safe -> Les calculs ne seront pas verifies.");
+			System.out.println("Mode \"non safe\" detecte : les calculs ne seront pas verifies.");
 		}
 
-                // Creation of the repartitor instance
+		// Creation of the repartitor instance
 		Repartitor repartiteur = new Repartitor(isSafe);
 		// Start repartitor's job
 		repartiteur.runRepartitor();
@@ -173,23 +199,34 @@ public class Repartitor {
 
 		System.out.println("Chargement des serveurs ...");
 		loadServerFromConfigFile();
-		
+
 		System.out.println("Attente des commandes ...");
 		try {
 			while ((commande = reader.readLine()) != null) {
 				commandes = commande.split(" ");
 				String command = commandes[0];
-				String filename = commandes[1];
 
-				if (command.equals("compute")) {
+				switch (command) {
+				case CMD_COMPUTE:
+					String filename = commandes[1];
 					try {
 						parseCalculousFileToCalculous(filename);
-					} catch (IOException e) {}
-					startThreadsThenJoin();					
+					} catch (IOException e) {
+						System.err.println("Le fichier " + filename + " est inacessible.");
+					}
+					// Start the threads
+					startThreadsThenJoin();
+					break;
+				case CMD_EXIT:
+					System.out.println("Sortie du programme ...");
+					System.exit(0);
+					break;
+				default:
+					System.out.println("Commande inconnue : compute nomFichier ou exit sont les "
+							+ "deux seules commandes possibles.");
+					break;
+
 				}
-                                
-                                if (command.equals("exit"))
-                                    System.exit(0);
 			}
 		} catch (IOException e) {
 			System.err.println("Erreur dans la lecture du flux d'entree sortie.");
@@ -209,9 +246,8 @@ public class Repartitor {
 
 			while ((line = br.readLine()) != null) {
 				String[] array = line.split(" ");
-				CalculousServerInterface csi = loadServerStub(array[0],
-						Integer.parseInt(array[1]));
-				CalculousServeurs.add(csi);				
+				CalculousServerInterface csi = loadServerStub(array[0], Integer.parseInt(array[1]));
+				CalculousServeurs.add(csi);
 			}
 			br.close();
 		} catch (IOException e) { // TODO : gestion exception proprement
@@ -237,8 +273,7 @@ public class Repartitor {
 				e.printStackTrace();
 			}
 		} catch (NotBoundException e) {
-			System.err.println("Erreur: Le nom  " + e.getMessage()
-					+ "  n est pas defini dans le registre.");
+			System.err.println("Erreur: Le nom  " + e.getMessage() + "  n est pas defini dans le registre.");
 			System.exit(ERROR_NOT_BOUND);
 		} catch (AccessException e) {
 			System.err.println("Erreur: " + e.getMessage());
@@ -251,51 +286,49 @@ public class Repartitor {
 		return stub;
 	}
 
-        
-        /**
-         * Private method to launch one thread by server, one coordination thread
-         * and then wait the end of threads work to print the resul
-         * 
-         * @throws IOException
-         * @throws InterruptedException 
-         */
+	/**
+	 * Private method to launch one thread by server, one coordination thread
+	 * and then wait the end of threads work to print the resul
+	 * 
+	 * @throws IOException
+	 * @throws InterruptedException
+	 */
 	private void startThreadsThenJoin() throws IOException, InterruptedException {
-            long firstTime = System.currentTimeMillis();          
+		long firstTime = System.currentTimeMillis();
 
-		if (!safeMode){
-                        for (CalculousServerInterface server : CalculousServeurs) {
-                                SafeRepartitorThread thread = 
-                                        new SafeRepartitorThread( this, server, calculations,
-                                                calculationsSemaphore, globalResult, globalResultLock );
-                                threads.add( thread );
-                                thread.start();
-                        }
-                
-                }else{
-                        for (CalculousServerInterface server : CalculousServeurs) {
+		// Create threads depending on the safety parameter
+		if (!safeMode) {
+			for (CalculousServerInterface server : CalculousServeurs) {
+				SafeRepartitorThread thread = new SafeRepartitorThread(this, server, calculations,
+						calculationsSemaphore, globalResult, globalResultLock);
+				threads.add(thread);
+				thread.start();
+			}
+		} else {
+			for (CalculousServerInterface server : CalculousServeurs) {
+				UnsafeRepartitorThread thread = new UnsafeRepartitorThread(this, server, calculations,
+						calculationsSemaphore, globalResult, globalResultLock, toVerifyCalculations,
+						toVerifyCalculationsSemaphore);
+				threads.add(thread);
+				thread.start();
+			}
+		}
 
-                                UnsafeRepartitorThread thread = new UnsafeRepartitorThread( this, server,
-                                        calculations, calculationsSemaphore, globalResult, globalResultLock,
-                                        toVerifyCalculations, toVerifyCalculationsSemaphore );                        
-                                threads.add( thread );
-                                thread.start();
-                        }                    
-                }
-                
-                Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber);
-                coordinationThread.start();
-                
-                // THREADS SYNCHRONISATION
-                coordinationThread.join();
-                long secondTime = System.currentTimeMillis();
-                for (Thread thread : threads) {
-                    thread.join();
-                }
-                
-                System.out.println("Resultats des calculs => " + globalResult[0]);
-                System.out.println("Ce calcul a ete effectué en : " 
-                        + (secondTime - firstTime) + " millisecondes");
-      	}
+		// Create the thread to coordinate all the results
+		Thread coordinationThread = new CoordinateThread(this, globalResult, globalResultLock, operationNumber);
+		coordinationThread.start();
+
+		// Threads synchronisation
+		coordinationThread.join();
+		long secondTime = System.currentTimeMillis();
+		for (Thread thread : threads) {
+			thread.join();
+		}
+
+		// Print the results
+		System.out.println("Resultats des calculs ! " + globalResult[0]);
+		System.out.println("Ce calcul a ete effectue en : " + (secondTime - firstTime) + " millisecondes");
+	}
 
 	/**
 	 * Private method to store the initial calculations to do
@@ -304,11 +337,10 @@ public class Repartitor {
 	 * @throws IOException
 	 */
 	private void parseCalculousFileToCalculous(String filename) throws IOException {
-		// Some declarations ...
+		// Some declarations
 		String line = null;
 		FileInputStream fis = new FileInputStream(filename);
-		InputStreamReader isr = new InputStreamReader(fis,
-				Charset.forName("UTF-8"));
+		InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
 		BufferedReader br = new BufferedReader(isr);
 
 		// Add each line of the file to the datastructure
@@ -318,29 +350,31 @@ public class Repartitor {
 
 		// Close the buffer
 		br.close();
-                operationNumber = calculations.size();
+		operationNumber = calculations.size();
 	}
 
-        /**
-         * safeMode getter
-         * @return safeMode
-         */
+	/**
+	 * safeMode getter
+	 * 
+	 * @return safeMode
+	 */
 	public boolean isSafeMode() {
 		return this.safeMode;
 	}
-        
-        /**
-         * threadsShouldEnd getter
-         * @return the inverse of threadsShouldEnd
-         */
-        public boolean threadsShouldContinue(){
-                return !threadsShouldEnd;
-        }
-        
-        /**
-         * set threadsShouldEnd to true
-         */
-        public void stopTheThreads(){
-                threadsShouldEnd = true;
-        }
+
+	/**
+	 * threadsShouldEnd getter
+	 * 
+	 * @return the inverse of threadsShouldEnd
+	 */
+	public boolean threadsShouldContinue() {
+		return !threadsShouldEnd;
+	}
+
+	/**
+	 * set threadsShouldEnd to true
+	 */
+	public void stopTheThreads() {
+		threadsShouldEnd = true;
+	}
 }
