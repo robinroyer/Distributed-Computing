@@ -12,7 +12,7 @@ In order to handle malicious servers, the load balancer has 2 different modes `S
 
 ## Compile this project
 
-- Go to `v0` folder.
+- Go to `distributedComputing` folder.
 - compile sources : `ant`
 
 ## Launch servers
@@ -49,7 +49,7 @@ Once the load repartitor is launched, we have 2 options `compute FILE` & `exit`:
 
 > operation files are available as `operations-XXXX` where XXXS is the file result
 
-French report is available in **V0** folder : **Rapport-TP2-INF4410.pdf**
+French report is available in **distributedComputing** folder : **Rapport-TP2-INF4410.pdf**
 
 
 ## Author
