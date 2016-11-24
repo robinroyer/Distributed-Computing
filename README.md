@@ -1,10 +1,12 @@
 # Distributed Computation Load Balancing
 
-This project's goal is to implement a Java distributed computation load balancing.
-Many servers can connect to our load balancer are available to receive calculous.
+This project's goal is to implement a Java RMI distributed computation load balancing.
+Many servers can connect to our load balancer and are available to receive calculous.
 A server may or may not give the right answer and each server has it own capacity (**beware of overload !**)
 
-The load balancer has 2 different modes `SAFE` & `UNSAFE`:
+In order to handle server overloading, the load balancer adjuts the number of calculatons sent to every server.
+
+In order to handle malicious servers, the load balancer has 2 different modes `SAFE` & `UNSAFE`:
 - `SAFE` => Server results are trustful and the repartitor only merges the results.
 - `UNSAFE` => Server aren't trustful and the repartitor always verificates the server's results with cross-validation
 
