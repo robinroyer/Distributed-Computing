@@ -1,6 +1,6 @@
-# Distributed Computating
+# Distributed Computing
 
-This project's goal is to implement a Java RMI distributed computating with load balancing.
+This project's goal is to implement a Java RMI distributed computing with load balancing.
 Many servers can connect to our load balancer and are available to receive calculous.
 A server may or may not give the right answer and each server has it own capacity (**beware of overload !**)
 
@@ -43,8 +43,8 @@ rmiregistry 5010 &
 ## Distribute computing
 
 Once the load repartitor is launched, we have 2 options `compute FILE` & `exit`:
-- `compute FILE` => parse the input file and distributes computing with the differents available servers, then print result
-- `EXIT` => terminate load balancer
+- `compute FILE` => it parses the input file and distributes computing with the differents available servers, then prints the result.
+- `EXIT` => it kills the load balancer.
 
 
 > operation files are available as `operations-XXXX` where XXXS is the file result
